@@ -1,0 +1,844 @@
+; ModuleID = 'rdjpgcom.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+%struct.__sFILE = type { i8*, i32, i32, i16, i16, %struct.__sbuf, i32, i8*, i32 (i8*)*, i32 (i8*, i8*, i32)*, i64 (i8*, i64, i32)*, i32 (i8*, i8*, i32)*, %struct.__sbuf, %struct.__sFILEX*, i32, [3 x i8], [1 x i8], %struct.__sbuf, i32, i64 }
+%struct.__sbuf = type { i8*, i32 }
+%struct.__sFILEX = type opaque
+
+@progname = internal global i8* null, align 8
+@.str = private unnamed_addr constant [9 x i8] c"rdjpgcom\00", align 1
+@.str1 = private unnamed_addr constant [8 x i8] c"verbose\00", align 1
+@__stderrp = external global %struct.__sFILE*
+@.str2 = private unnamed_addr constant [25 x i8] c"%s: only one input file\0A\00", align 1
+@.str3 = private unnamed_addr constant [3 x i8] c"rb\00", align 1
+@infile = internal global %struct.__sFILE* null, align 8
+@.str4 = private unnamed_addr constant [19 x i8] c"%s: can't open %s\0A\00", align 1
+@__stdinp = external global %struct.__sFILE*
+@.str5 = private unnamed_addr constant [4 x i8] c"%s\0A\00", align 1
+@.str6 = private unnamed_addr constant [26 x i8] c"Expected SOI marker first\00", align 1
+@.str7 = private unnamed_addr constant [29 x i8] c"Erroneous JPEG marker length\00", align 1
+@.str8 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@.str9 = private unnamed_addr constant [3 x i8] c"\5C\5C\00", align 1
+@__stdoutp = external global %struct.__sFILE*
+@.str10 = private unnamed_addr constant [6 x i8] c"\5C%03o\00", align 1
+@.str11 = private unnamed_addr constant [27 x i8] c"Premature EOF in JPEG file\00", align 1
+@.str12 = private unnamed_addr constant [9 x i8] c"Baseline\00", align 1
+@.str13 = private unnamed_addr constant [20 x i8] c"Extended sequential\00", align 1
+@.str14 = private unnamed_addr constant [12 x i8] c"Progressive\00", align 1
+@.str15 = private unnamed_addr constant [9 x i8] c"Lossless\00", align 1
+@.str16 = private unnamed_addr constant [24 x i8] c"Differential sequential\00", align 1
+@.str17 = private unnamed_addr constant [25 x i8] c"Differential progressive\00", align 1
+@.str18 = private unnamed_addr constant [22 x i8] c"Differential lossless\00", align 1
+@.str19 = private unnamed_addr constant [39 x i8] c"Extended sequential, arithmetic coding\00", align 1
+@.str20 = private unnamed_addr constant [31 x i8] c"Progressive, arithmetic coding\00", align 1
+@.str21 = private unnamed_addr constant [28 x i8] c"Lossless, arithmetic coding\00", align 1
+@.str22 = private unnamed_addr constant [43 x i8] c"Differential sequential, arithmetic coding\00", align 1
+@.str23 = private unnamed_addr constant [44 x i8] c"Differential progressive, arithmetic coding\00", align 1
+@.str24 = private unnamed_addr constant [41 x i8] c"Differential lossless, arithmetic coding\00", align 1
+@.str25 = private unnamed_addr constant [8 x i8] c"Unknown\00", align 1
+@.str26 = private unnamed_addr constant [66 x i8] c"JPEG image is %uw * %uh, %d color components, %d bits per sample\0A\00", align 1
+@.str27 = private unnamed_addr constant [18 x i8] c"JPEG process: %s\0A\00", align 1
+@.str28 = private unnamed_addr constant [24 x i8] c"Bogus SOF marker length\00", align 1
+@.str29 = private unnamed_addr constant [42 x i8] c"Warning: garbage data found in JPEG file\0A\00", align 1
+@.str30 = private unnamed_addr constant [16 x i8] c"Not a JPEG file\00", align 1
+@.str31 = private unnamed_addr constant [56 x i8] c"rdjpgcom displays any textual comments in a JPEG file.\0A\00", align 1
+@.str32 = private unnamed_addr constant [34 x i8] c"Usage: %s [switches] [inputfile]\0A\00", align 1
+@.str33 = private unnamed_addr constant [38 x i8] c"Switches (names may be abbreviated):\0A\00", align 1
+@.str34 = private unnamed_addr constant [53 x i8] c"  -verbose    Also display dimensions of JPEG image\0A\00", align 1
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @main(i32 %argc, i8** %argv) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %argc.addr = alloca i32, align 4
+  %argv.addr = alloca i8**, align 8
+  %argn = alloca i32, align 4
+  %arg = alloca i8*, align 8
+  %verbose = alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 %argc, i32* %argc.addr, align 4
+  store i8** %argv, i8*** %argv.addr, align 8
+  store i32 0, i32* %verbose, align 4
+  %0 = load i8*** %argv.addr, align 8
+  %arrayidx = getelementptr inbounds i8** %0, i64 0
+  %1 = load i8** %arrayidx, align 8
+  store i8* %1, i8** @progname, align 8
+  %2 = load i8** @progname, align 8
+  %cmp = icmp eq i8* %2, null
+  br i1 %cmp, label %if.then, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %entry
+  %3 = load i8** @progname, align 8
+  %arrayidx1 = getelementptr inbounds i8* %3, i64 0
+  %4 = load i8* %arrayidx1, align 1
+  %conv = sext i8 %4 to i32
+  %cmp2 = icmp eq i32 %conv, 0
+  br i1 %cmp2, label %if.then, label %if.end
+
+if.then:                                          ; preds = %lor.lhs.false, %entry
+  store i8* getelementptr inbounds ([9 x i8]* @.str, i32 0, i32 0), i8** @progname, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %lor.lhs.false
+  store i32 1, i32* %argn, align 4
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %if.end
+  %5 = load i32* %argn, align 4
+  %6 = load i32* %argc.addr, align 4
+  %cmp4 = icmp slt i32 %5, %6
+  br i1 %cmp4, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.cond
+  %7 = load i32* %argn, align 4
+  %idxprom = sext i32 %7 to i64
+  %8 = load i8*** %argv.addr, align 8
+  %arrayidx6 = getelementptr inbounds i8** %8, i64 %idxprom
+  %9 = load i8** %arrayidx6, align 8
+  store i8* %9, i8** %arg, align 8
+  %10 = load i8** %arg, align 8
+  %arrayidx7 = getelementptr inbounds i8* %10, i64 0
+  %11 = load i8* %arrayidx7, align 1
+  %conv8 = sext i8 %11 to i32
+  %cmp9 = icmp ne i32 %conv8, 45
+  br i1 %cmp9, label %if.then11, label %if.end12
+
+if.then11:                                        ; preds = %for.body
+  br label %for.end
+
+if.end12:                                         ; preds = %for.body
+  %12 = load i8** %arg, align 8
+  %incdec.ptr = getelementptr inbounds i8* %12, i32 1
+  store i8* %incdec.ptr, i8** %arg, align 8
+  %13 = load i8** %arg, align 8
+  %call = call i32 @keymatch(i8* %13, i8* getelementptr inbounds ([8 x i8]* @.str1, i32 0, i32 0), i32 1)
+  %tobool = icmp ne i32 %call, 0
+  br i1 %tobool, label %if.then13, label %if.else
+
+if.then13:                                        ; preds = %if.end12
+  %14 = load i32* %verbose, align 4
+  %inc = add nsw i32 %14, 1
+  store i32 %inc, i32* %verbose, align 4
+  br label %if.end14
+
+if.else:                                          ; preds = %if.end12
+  call void @usage()
+  br label %if.end14
+
+if.end14:                                         ; preds = %if.else, %if.then13
+  br label %for.inc
+
+for.inc:                                          ; preds = %if.end14
+  %15 = load i32* %argn, align 4
+  %inc15 = add nsw i32 %15, 1
+  store i32 %inc15, i32* %argn, align 4
+  br label %for.cond
+
+for.end:                                          ; preds = %if.then11, %for.cond
+  %16 = load i32* %argn, align 4
+  %17 = load i32* %argc.addr, align 4
+  %sub = sub nsw i32 %17, 1
+  %cmp16 = icmp slt i32 %16, %sub
+  br i1 %cmp16, label %if.then18, label %if.end20
+
+if.then18:                                        ; preds = %for.end
+  %18 = load %struct.__sFILE** @__stderrp, align 8
+  %19 = load i8** @progname, align 8
+  %call19 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %18, i8* getelementptr inbounds ([25 x i8]* @.str2, i32 0, i32 0), i8* %19)
+  call void @usage()
+  br label %if.end20
+
+if.end20:                                         ; preds = %if.then18, %for.end
+  %20 = load i32* %argn, align 4
+  %21 = load i32* %argc.addr, align 4
+  %cmp21 = icmp slt i32 %20, %21
+  br i1 %cmp21, label %if.then23, label %if.else34
+
+if.then23:                                        ; preds = %if.end20
+  %22 = load i32* %argn, align 4
+  %idxprom24 = sext i32 %22 to i64
+  %23 = load i8*** %argv.addr, align 8
+  %arrayidx25 = getelementptr inbounds i8** %23, i64 %idxprom24
+  %24 = load i8** %arrayidx25, align 8
+  %call26 = call %struct.__sFILE* @"\01_fopen"(i8* %24, i8* getelementptr inbounds ([3 x i8]* @.str3, i32 0, i32 0))
+  store %struct.__sFILE* %call26, %struct.__sFILE** @infile, align 8
+  %cmp27 = icmp eq %struct.__sFILE* %call26, null
+  br i1 %cmp27, label %if.then29, label %if.end33
+
+if.then29:                                        ; preds = %if.then23
+  %25 = load %struct.__sFILE** @__stderrp, align 8
+  %26 = load i8** @progname, align 8
+  %27 = load i32* %argn, align 4
+  %idxprom30 = sext i32 %27 to i64
+  %28 = load i8*** %argv.addr, align 8
+  %arrayidx31 = getelementptr inbounds i8** %28, i64 %idxprom30
+  %29 = load i8** %arrayidx31, align 8
+  %call32 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %25, i8* getelementptr inbounds ([19 x i8]* @.str4, i32 0, i32 0), i8* %26, i8* %29)
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end33:                                         ; preds = %if.then23
+  br label %if.end35
+
+if.else34:                                        ; preds = %if.end20
+  %30 = load %struct.__sFILE** @__stdinp, align 8
+  store %struct.__sFILE* %30, %struct.__sFILE** @infile, align 8
+  br label %if.end35
+
+if.end35:                                         ; preds = %if.else34, %if.end33
+  %31 = load i32* %verbose, align 4
+  %call36 = call i32 @scan_JPEG_header(i32 %31)
+  call void @exit(i32 0) #3
+  unreachable
+
+return:                                           ; No predecessors!
+  %32 = load i32* %retval
+  ret i32 %32
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @keymatch(i8* %arg, i8* %keyword, i32 %minchars) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %arg.addr = alloca i8*, align 8
+  %keyword.addr = alloca i8*, align 8
+  %minchars.addr = alloca i32, align 4
+  %ca = alloca i32, align 4
+  %ck = alloca i32, align 4
+  %nmatched = alloca i32, align 4
+  store i8* %arg, i8** %arg.addr, align 8
+  store i8* %keyword, i8** %keyword.addr, align 8
+  store i32 %minchars, i32* %minchars.addr, align 4
+  store i32 0, i32* %nmatched, align 4
+  br label %while.cond
+
+while.cond:                                       ; preds = %if.end12, %entry
+  %0 = load i8** %arg.addr, align 8
+  %incdec.ptr = getelementptr inbounds i8* %0, i32 1
+  store i8* %incdec.ptr, i8** %arg.addr, align 8
+  %1 = load i8* %0, align 1
+  %conv = sext i8 %1 to i32
+  store i32 %conv, i32* %ca, align 4
+  %cmp = icmp ne i32 %conv, 0
+  br i1 %cmp, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %2 = load i8** %keyword.addr, align 8
+  %incdec.ptr2 = getelementptr inbounds i8* %2, i32 1
+  store i8* %incdec.ptr2, i8** %keyword.addr, align 8
+  %3 = load i8* %2, align 1
+  %conv3 = sext i8 %3 to i32
+  store i32 %conv3, i32* %ck, align 4
+  %cmp4 = icmp eq i32 %conv3, 0
+  br i1 %cmp4, label %if.then, label %if.end
+
+if.then:                                          ; preds = %while.body
+  store i32 0, i32* %retval
+  br label %return
+
+if.end:                                           ; preds = %while.body
+  %4 = load i32* %ca, align 4
+  %call = call i32 @isupper(i32 %4)
+  %tobool = icmp ne i32 %call, 0
+  br i1 %tobool, label %if.then6, label %if.end8
+
+if.then6:                                         ; preds = %if.end
+  %5 = load i32* %ca, align 4
+  %call7 = call i32 @tolower(i32 %5)
+  store i32 %call7, i32* %ca, align 4
+  br label %if.end8
+
+if.end8:                                          ; preds = %if.then6, %if.end
+  %6 = load i32* %ca, align 4
+  %7 = load i32* %ck, align 4
+  %cmp9 = icmp ne i32 %6, %7
+  br i1 %cmp9, label %if.then11, label %if.end12
+
+if.then11:                                        ; preds = %if.end8
+  store i32 0, i32* %retval
+  br label %return
+
+if.end12:                                         ; preds = %if.end8
+  %8 = load i32* %nmatched, align 4
+  %inc = add nsw i32 %8, 1
+  store i32 %inc, i32* %nmatched, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %9 = load i32* %nmatched, align 4
+  %10 = load i32* %minchars.addr, align 4
+  %cmp13 = icmp slt i32 %9, %10
+  br i1 %cmp13, label %if.then15, label %if.end16
+
+if.then15:                                        ; preds = %while.end
+  store i32 0, i32* %retval
+  br label %return
+
+if.end16:                                         ; preds = %while.end
+  store i32 1, i32* %retval
+  br label %return
+
+return:                                           ; preds = %if.end16, %if.then15, %if.then11, %if.then
+  %11 = load i32* %retval
+  ret i32 %11
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal void @usage() #0 {
+entry:
+  %0 = load %struct.__sFILE** @__stderrp, align 8
+  %call = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %0, i8* getelementptr inbounds ([56 x i8]* @.str31, i32 0, i32 0))
+  %1 = load %struct.__sFILE** @__stderrp, align 8
+  %2 = load i8** @progname, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %1, i8* getelementptr inbounds ([34 x i8]* @.str32, i32 0, i32 0), i8* %2)
+  %3 = load %struct.__sFILE** @__stderrp, align 8
+  %call2 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %3, i8* getelementptr inbounds ([38 x i8]* @.str33, i32 0, i32 0))
+  %4 = load %struct.__sFILE** @__stderrp, align 8
+  %call3 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %4, i8* getelementptr inbounds ([53 x i8]* @.str34, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+return:                                           ; No predecessors!
+  ret void
+}
+
+declare i32 @fprintf(%struct.__sFILE*, i8*, ...) #1
+
+declare %struct.__sFILE* @"\01_fopen"(i8*, i8*) #1
+
+; Function Attrs: noreturn
+declare void @exit(i32) #2
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @scan_JPEG_header(i32 %verbose) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %verbose.addr = alloca i32, align 4
+  %marker = alloca i32, align 4
+  store i32 %verbose, i32* %verbose.addr, align 4
+  %call = call i32 @first_marker()
+  %cmp = icmp ne i32 %call, 216
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %0 = load %struct.__sFILE** @__stderrp, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %0, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([26 x i8]* @.str6, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %entry
+  br label %for.cond
+
+for.cond:                                         ; preds = %sw.epilog, %if.end
+  %call2 = call i32 @next_marker()
+  store i32 %call2, i32* %marker, align 4
+  %1 = load i32* %marker, align 4
+  switch i32 %1, label %sw.default [
+    i32 192, label %sw.bb
+    i32 193, label %sw.bb
+    i32 194, label %sw.bb
+    i32 195, label %sw.bb
+    i32 197, label %sw.bb
+    i32 198, label %sw.bb
+    i32 199, label %sw.bb
+    i32 201, label %sw.bb
+    i32 202, label %sw.bb
+    i32 203, label %sw.bb
+    i32 205, label %sw.bb
+    i32 206, label %sw.bb
+    i32 207, label %sw.bb
+    i32 218, label %sw.bb5
+    i32 217, label %sw.bb6
+    i32 254, label %sw.bb7
+  ]
+
+sw.bb:                                            ; preds = %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond, %for.cond
+  %2 = load i32* %verbose.addr, align 4
+  %tobool = icmp ne i32 %2, 0
+  br i1 %tobool, label %if.then3, label %if.else
+
+if.then3:                                         ; preds = %sw.bb
+  %3 = load i32* %marker, align 4
+  call void @process_SOFn(i32 %3)
+  br label %if.end4
+
+if.else:                                          ; preds = %sw.bb
+  call void @skip_variable()
+  br label %if.end4
+
+if.end4:                                          ; preds = %if.else, %if.then3
+  br label %sw.epilog
+
+sw.bb5:                                           ; preds = %for.cond
+  %4 = load i32* %marker, align 4
+  store i32 %4, i32* %retval
+  br label %return
+
+sw.bb6:                                           ; preds = %for.cond
+  %5 = load i32* %marker, align 4
+  store i32 %5, i32* %retval
+  br label %return
+
+sw.bb7:                                           ; preds = %for.cond
+  call void @process_COM()
+  br label %sw.epilog
+
+sw.default:                                       ; preds = %for.cond
+  call void @skip_variable()
+  br label %sw.epilog
+
+sw.epilog:                                        ; preds = %sw.default, %sw.bb7, %if.end4
+  br label %for.cond
+
+return:                                           ; preds = %sw.bb6, %sw.bb5
+  %6 = load i32* %retval
+  ret i32 %6
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @first_marker() #0 {
+entry:
+  %c1 = alloca i32, align 4
+  %c2 = alloca i32, align 4
+  %0 = load %struct.__sFILE** @infile, align 8
+  %call = call i32 @getc(%struct.__sFILE* %0)
+  store i32 %call, i32* %c1, align 4
+  %1 = load %struct.__sFILE** @infile, align 8
+  %call1 = call i32 @getc(%struct.__sFILE* %1)
+  store i32 %call1, i32* %c2, align 4
+  %2 = load i32* %c1, align 4
+  %cmp = icmp ne i32 %2, 255
+  br i1 %cmp, label %if.then, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %entry
+  %3 = load i32* %c2, align 4
+  %cmp2 = icmp ne i32 %3, 216
+  br i1 %cmp2, label %if.then, label %if.end
+
+if.then:                                          ; preds = %lor.lhs.false, %entry
+  %4 = load %struct.__sFILE** @__stderrp, align 8
+  %call3 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %4, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([16 x i8]* @.str30, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %lor.lhs.false
+  %5 = load i32* %c2, align 4
+  ret i32 %5
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @next_marker() #0 {
+entry:
+  %c = alloca i32, align 4
+  %discarded_bytes = alloca i32, align 4
+  store i32 0, i32* %discarded_bytes, align 4
+  %call = call i32 @read_1_byte()
+  store i32 %call, i32* %c, align 4
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %entry
+  %0 = load i32* %c, align 4
+  %cmp = icmp ne i32 %0, 255
+  br i1 %cmp, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %1 = load i32* %discarded_bytes, align 4
+  %inc = add nsw i32 %1, 1
+  store i32 %inc, i32* %discarded_bytes, align 4
+  %call1 = call i32 @read_1_byte()
+  store i32 %call1, i32* %c, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  br label %do.body
+
+do.body:                                          ; preds = %do.cond, %while.end
+  %call2 = call i32 @read_1_byte()
+  store i32 %call2, i32* %c, align 4
+  br label %do.cond
+
+do.cond:                                          ; preds = %do.body
+  %2 = load i32* %c, align 4
+  %cmp3 = icmp eq i32 %2, 255
+  br i1 %cmp3, label %do.body, label %do.end
+
+do.end:                                           ; preds = %do.cond
+  %3 = load i32* %discarded_bytes, align 4
+  %cmp4 = icmp ne i32 %3, 0
+  br i1 %cmp4, label %if.then, label %if.end
+
+if.then:                                          ; preds = %do.end
+  %4 = load %struct.__sFILE** @__stderrp, align 8
+  %call5 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %4, i8* getelementptr inbounds ([42 x i8]* @.str29, i32 0, i32 0))
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %do.end
+  %5 = load i32* %c, align 4
+  ret i32 %5
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal void @process_SOFn(i32 %marker) #0 {
+entry:
+  %marker.addr = alloca i32, align 4
+  %length = alloca i32, align 4
+  %image_height = alloca i32, align 4
+  %image_width = alloca i32, align 4
+  %data_precision = alloca i32, align 4
+  %num_components = alloca i32, align 4
+  %process = alloca i8*, align 8
+  %ci = alloca i32, align 4
+  store i32 %marker, i32* %marker.addr, align 4
+  %call = call i32 @read_2_bytes()
+  store i32 %call, i32* %length, align 4
+  %call1 = call i32 @read_1_byte()
+  store i32 %call1, i32* %data_precision, align 4
+  %call2 = call i32 @read_2_bytes()
+  store i32 %call2, i32* %image_height, align 4
+  %call3 = call i32 @read_2_bytes()
+  store i32 %call3, i32* %image_width, align 4
+  %call4 = call i32 @read_1_byte()
+  store i32 %call4, i32* %num_components, align 4
+  %0 = load i32* %marker.addr, align 4
+  switch i32 %0, label %sw.default [
+    i32 192, label %sw.bb
+    i32 193, label %sw.bb5
+    i32 194, label %sw.bb6
+    i32 195, label %sw.bb7
+    i32 197, label %sw.bb8
+    i32 198, label %sw.bb9
+    i32 199, label %sw.bb10
+    i32 201, label %sw.bb11
+    i32 202, label %sw.bb12
+    i32 203, label %sw.bb13
+    i32 205, label %sw.bb14
+    i32 206, label %sw.bb15
+    i32 207, label %sw.bb16
+  ]
+
+sw.bb:                                            ; preds = %entry
+  store i8* getelementptr inbounds ([9 x i8]* @.str12, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb5:                                           ; preds = %entry
+  store i8* getelementptr inbounds ([20 x i8]* @.str13, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb6:                                           ; preds = %entry
+  store i8* getelementptr inbounds ([12 x i8]* @.str14, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb7:                                           ; preds = %entry
+  store i8* getelementptr inbounds ([9 x i8]* @.str15, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb8:                                           ; preds = %entry
+  store i8* getelementptr inbounds ([24 x i8]* @.str16, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb9:                                           ; preds = %entry
+  store i8* getelementptr inbounds ([25 x i8]* @.str17, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb10:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([22 x i8]* @.str18, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb11:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([39 x i8]* @.str19, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb12:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([31 x i8]* @.str20, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb13:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([28 x i8]* @.str21, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb14:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([43 x i8]* @.str22, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb15:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([44 x i8]* @.str23, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.bb16:                                          ; preds = %entry
+  store i8* getelementptr inbounds ([41 x i8]* @.str24, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.default:                                       ; preds = %entry
+  store i8* getelementptr inbounds ([8 x i8]* @.str25, i32 0, i32 0), i8** %process, align 8
+  br label %sw.epilog
+
+sw.epilog:                                        ; preds = %sw.default, %sw.bb16, %sw.bb15, %sw.bb14, %sw.bb13, %sw.bb12, %sw.bb11, %sw.bb10, %sw.bb9, %sw.bb8, %sw.bb7, %sw.bb6, %sw.bb5, %sw.bb
+  %1 = load i32* %image_width, align 4
+  %2 = load i32* %image_height, align 4
+  %3 = load i32* %num_components, align 4
+  %4 = load i32* %data_precision, align 4
+  %call17 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([66 x i8]* @.str26, i32 0, i32 0), i32 %1, i32 %2, i32 %3, i32 %4)
+  %5 = load i8** %process, align 8
+  %call18 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([18 x i8]* @.str27, i32 0, i32 0), i8* %5)
+  %6 = load i32* %length, align 4
+  %7 = load i32* %num_components, align 4
+  %mul = mul nsw i32 %7, 3
+  %add = add nsw i32 8, %mul
+  %cmp = icmp ne i32 %6, %add
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %sw.epilog
+  %8 = load %struct.__sFILE** @__stderrp, align 8
+  %call19 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %8, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([24 x i8]* @.str28, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %sw.epilog
+  store i32 0, i32* %ci, align 4
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %if.end
+  %9 = load i32* %ci, align 4
+  %10 = load i32* %num_components, align 4
+  %cmp20 = icmp slt i32 %9, %10
+  br i1 %cmp20, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.cond
+  %call21 = call i32 @read_1_byte()
+  %call22 = call i32 @read_1_byte()
+  %call23 = call i32 @read_1_byte()
+  br label %for.inc
+
+for.inc:                                          ; preds = %for.body
+  %11 = load i32* %ci, align 4
+  %inc = add nsw i32 %11, 1
+  store i32 %inc, i32* %ci, align 4
+  br label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  ret void
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal void @skip_variable() #0 {
+entry:
+  %length = alloca i32, align 4
+  %call = call i32 @read_2_bytes()
+  store i32 %call, i32* %length, align 4
+  %0 = load i32* %length, align 4
+  %cmp = icmp ult i32 %0, 2
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %1 = load %struct.__sFILE** @__stderrp, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %1, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([29 x i8]* @.str7, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %2 = load i32* %length, align 4
+  %sub = sub i32 %2, 2
+  store i32 %sub, i32* %length, align 4
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %if.end
+  %3 = load i32* %length, align 4
+  %cmp2 = icmp ugt i32 %3, 0
+  br i1 %cmp2, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %call3 = call i32 @read_1_byte()
+  %4 = load i32* %length, align 4
+  %dec = add i32 %4, -1
+  store i32 %dec, i32* %length, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  ret void
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal void @process_COM() #0 {
+entry:
+  %length = alloca i32, align 4
+  %ch = alloca i32, align 4
+  %lastch = alloca i32, align 4
+  store i32 0, i32* %lastch, align 4
+  %call = call i32 @read_2_bytes()
+  store i32 %call, i32* %length, align 4
+  %0 = load i32* %length, align 4
+  %cmp = icmp ult i32 %0, 2
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %1 = load %struct.__sFILE** @__stderrp, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %1, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([29 x i8]* @.str7, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %2 = load i32* %length, align 4
+  %sub = sub i32 %2, 2
+  store i32 %sub, i32* %length, align 4
+  br label %while.cond
+
+while.cond:                                       ; preds = %if.end26, %if.end
+  %3 = load i32* %length, align 4
+  %cmp2 = icmp ugt i32 %3, 0
+  br i1 %cmp2, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %call3 = call i32 @read_1_byte()
+  store i32 %call3, i32* %ch, align 4
+  %4 = load i32* %ch, align 4
+  %cmp4 = icmp eq i32 %4, 13
+  br i1 %cmp4, label %if.then5, label %if.else
+
+if.then5:                                         ; preds = %while.body
+  %call6 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([2 x i8]* @.str8, i32 0, i32 0))
+  br label %if.end26
+
+if.else:                                          ; preds = %while.body
+  %5 = load i32* %ch, align 4
+  %cmp7 = icmp eq i32 %5, 10
+  br i1 %cmp7, label %if.then8, label %if.else13
+
+if.then8:                                         ; preds = %if.else
+  %6 = load i32* %lastch, align 4
+  %cmp9 = icmp ne i32 %6, 13
+  br i1 %cmp9, label %if.then10, label %if.end12
+
+if.then10:                                        ; preds = %if.then8
+  %call11 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([2 x i8]* @.str8, i32 0, i32 0))
+  br label %if.end12
+
+if.end12:                                         ; preds = %if.then10, %if.then8
+  br label %if.end25
+
+if.else13:                                        ; preds = %if.else
+  %7 = load i32* %ch, align 4
+  %cmp14 = icmp eq i32 %7, 92
+  br i1 %cmp14, label %if.then15, label %if.else17
+
+if.then15:                                        ; preds = %if.else13
+  %call16 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @.str9, i32 0, i32 0))
+  br label %if.end24
+
+if.else17:                                        ; preds = %if.else13
+  %8 = load i32* %ch, align 4
+  %call18 = call i32 @isprint(i32 %8)
+  %tobool = icmp ne i32 %call18, 0
+  br i1 %tobool, label %if.then19, label %if.else21
+
+if.then19:                                        ; preds = %if.else17
+  %9 = load i32* %ch, align 4
+  %10 = load %struct.__sFILE** @__stdoutp, align 8
+  %call20 = call i32 @putc(i32 %9, %struct.__sFILE* %10)
+  br label %if.end23
+
+if.else21:                                        ; preds = %if.else17
+  %11 = load i32* %ch, align 4
+  %call22 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([6 x i8]* @.str10, i32 0, i32 0), i32 %11)
+  br label %if.end23
+
+if.end23:                                         ; preds = %if.else21, %if.then19
+  br label %if.end24
+
+if.end24:                                         ; preds = %if.end23, %if.then15
+  br label %if.end25
+
+if.end25:                                         ; preds = %if.end24, %if.end12
+  br label %if.end26
+
+if.end26:                                         ; preds = %if.end25, %if.then5
+  %12 = load i32* %ch, align 4
+  store i32 %12, i32* %lastch, align 4
+  %13 = load i32* %length, align 4
+  %dec = add i32 %13, -1
+  store i32 %dec, i32* %length, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %call27 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([2 x i8]* @.str8, i32 0, i32 0))
+  ret void
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @read_2_bytes() #0 {
+entry:
+  %c1 = alloca i32, align 4
+  %c2 = alloca i32, align 4
+  %0 = load %struct.__sFILE** @infile, align 8
+  %call = call i32 @getc(%struct.__sFILE* %0)
+  store i32 %call, i32* %c1, align 4
+  %1 = load i32* %c1, align 4
+  %cmp = icmp eq i32 %1, -1
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %2 = load %struct.__sFILE** @__stderrp, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %2, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([27 x i8]* @.str11, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %3 = load %struct.__sFILE** @infile, align 8
+  %call2 = call i32 @getc(%struct.__sFILE* %3)
+  store i32 %call2, i32* %c2, align 4
+  %4 = load i32* %c2, align 4
+  %cmp3 = icmp eq i32 %4, -1
+  br i1 %cmp3, label %if.then4, label %if.end6
+
+if.then4:                                         ; preds = %if.end
+  %5 = load %struct.__sFILE** @__stderrp, align 8
+  %call5 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %5, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([27 x i8]* @.str11, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end6:                                          ; preds = %if.end
+  %6 = load i32* %c1, align 4
+  %shl = shl i32 %6, 8
+  %7 = load i32* %c2, align 4
+  %add = add i32 %shl, %7
+  ret i32 %add
+}
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @read_1_byte() #0 {
+entry:
+  %c = alloca i32, align 4
+  %0 = load %struct.__sFILE** @infile, align 8
+  %call = call i32 @getc(%struct.__sFILE* %0)
+  store i32 %call, i32* %c, align 4
+  %1 = load i32* %c, align 4
+  %cmp = icmp eq i32 %1, -1
+  br i1 %cmp, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %2 = load %struct.__sFILE** @__stderrp, align 8
+  %call1 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %2, i8* getelementptr inbounds ([4 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([27 x i8]* @.str11, i32 0, i32 0))
+  call void @exit(i32 1) #3
+  unreachable
+
+if.end:                                           ; preds = %entry
+  %3 = load i32* %c, align 4
+  ret i32 %3
+}
+
+declare i32 @printf(i8*, ...) #1
+
+declare i32 @isprint(i32) #1
+
+declare i32 @putc(i32, %struct.__sFILE*) #1
+
+declare i32 @getc(%struct.__sFILE*) #1
+
+declare i32 @isupper(i32) #1
+
+declare i32 @tolower(i32) #1
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { noreturn }

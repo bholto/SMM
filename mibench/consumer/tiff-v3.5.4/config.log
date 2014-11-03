@@ -1,0 +1,40 @@
+Mon Sep 15 21:50:46 MST 2014
+Running ./configure with arguments: -with-CC=../../../../CppProjects/llvm_build/Debug+Asserts/bin/clang
+
+This file contains information that is captured from running the configure
+script.  Lines that begin with a "+" are command lines echoed by the
+shell.  Other lines are the output of commands; usually the contents of
+test case files or the output from compilers.  If configure does the
+wrong thing, you can use the information captured here to aid in debugging.
+
+++ . ./config.site
++++ DSO=no
++++ JPEG=no
++++ HTML=no
++++ DIR_BIN=bin
++++ DIR_LIB=lib
++++ DIR_INC=include
++++ DIR_MAN=man
++++ DIR_HTML=httpd/htdocs/tiff
++++ FILLORDER=MSB2LSB
++++ AR=ar
++++ CC=gcc
+++ cat dummy.c
+main(int argc, char* argv) { exit(0); }
+++ cat xgnu.c
+#ifdef __GNUC__
+yes;
+#endif
+++ gcc -E xgnu.c
+++ egrep yes
+yes;
+++ gcc -o dummy dummy.c
+dummy.c:1:1: warning: type specifier missing, defaults to 'int' [-Wimplicit-int]
+main(int argc, char* argv) { exit(0); }
+^~~~
+dummy.c:1:1: error: second parameter of 'main' (argument array) must be of type 'char **'
+dummy.c:1:30: warning: implicitly declaring library function 'exit' with type 'void (int) __attribute__((noreturn))'
+main(int argc, char* argv) { exit(0); }
+                             ^
+dummy.c:1:30: note: please include the header <stdlib.h> or explicitly provide a declaration for 'exit'
+2 warnings and 1 error generated.

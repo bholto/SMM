@@ -1,0 +1,92 @@
+; ModuleID = 'def_pars.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+%struct.klatt_frame_t = type { i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64 }
+%struct.klatt_global_t = type { i32, i32, i32, i32, i64, i64, i64, i64 }
+
+@.str = private unnamed_addr constant [65 x i8] c"$Id: def_pars.c,v 1.13 1994/11/08 13:30:50 a904209 Exp a904209 $\00", align 1
+@def_pars_id = global i8* getelementptr inbounds ([65 x i8]* @.str, i32 0, i32 0), align 8
+@def_pars = global %struct.klatt_frame_t { i64 1330, i64 60, i64 500, i64 60, i64 1500, i64 90, i64 2800, i64 150, i64 3250, i64 200, i64 3700, i64 200, i64 4990, i64 500, i64 270, i64 100, i64 270, i64 100, i64 0, i64 30, i64 0, i64 10, i64 0, i64 0, i64 0, i64 80, i64 0, i64 200, i64 0, i64 350, i64 0, i64 500, i64 0, i64 600, i64 0, i64 800, i64 0, i64 0, i64 0, i64 62 }, align 8
+@samp_rate = external global i64
+@klatt_global = common global %struct.klatt_global_t zeroinitializer, align 8
+@.str1 = private unnamed_addr constant [16 x i8] c"Synth paramters\00", align 1
+@.str2 = private unnamed_addr constant [2 x i8] c"q\00", align 1
+@.str3 = private unnamed_addr constant [25 x i8] c"Quiet - minimal messages\00", align 1
+@.str4 = private unnamed_addr constant [2 x i8] c"I\00", align 1
+@.str5 = private unnamed_addr constant [23 x i8] c"Impulse glottal source\00", align 1
+@.str6 = private unnamed_addr constant [2 x i8] c"c\00", align 1
+@.str7 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@.str8 = private unnamed_addr constant [24 x i8] c"Number cascade formants\00", align 1
+@.str9 = private unnamed_addr constant [2 x i8] c"F\00", align 1
+@.str10 = private unnamed_addr constant [11 x i8] c"F0 flutter\00", align 1
+@.str11 = private unnamed_addr constant [2 x i8] c"f\00", align 1
+@.str12 = private unnamed_addr constant [4 x i8] c"%lg\00", align 1
+@.str13 = private unnamed_addr constant [15 x i8] c"mSec per frame\00", align 1
+@.str14 = private unnamed_addr constant [2 x i8] c"t\00", align 1
+@.str15 = private unnamed_addr constant [8 x i8] c"Tilt dB\00", align 1
+@.str16 = private unnamed_addr constant [2 x i8] c"x\00", align 1
+@.str17 = private unnamed_addr constant [17 x i8] c"Base F0 in 0.1Hz\00", align 1
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @init_synth(i32 %argc, i8** %argv) #0 {
+entry:
+  %argc.addr = alloca i32, align 4
+  %argv.addr = alloca i8**, align 8
+  %mSec_per_frame = alloca double, align 8
+  %impulse = alloca i32, align 4
+  %casc = alloca i32, align 4
+  store i32 %argc, i32* %argc.addr, align 4
+  store i8** %argv, i8*** %argv.addr, align 8
+  store double 1.000000e+01, double* %mSec_per_frame, align 8
+  store i32 0, i32* %impulse, align 4
+  store i32 0, i32* %casc, align 4
+  %0 = load i64* @samp_rate, align 8
+  store i64 %0, i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 4), align 8
+  store i32 1, i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 1), align 4
+  store i64 2, i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 6), align 8
+  store i32 0, i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 2), align 4
+  %1 = load i32* %argc.addr, align 4
+  %2 = load i8*** %argv.addr, align 8
+  %call = call i32 (i8*, i32, i8**, ...)* @getargs(i8* getelementptr inbounds ([16 x i8]* @.str1, i32 0, i32 0), i32 %1, i8** %2, i8* getelementptr inbounds ([2 x i8]* @.str2, i32 0, i32 0), i8* null, i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 1), i8* getelementptr inbounds ([25 x i8]* @.str3, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str4, i32 0, i32 0), i8* null, i32* %impulse, i8* getelementptr inbounds ([23 x i8]* @.str5, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str6, i32 0, i32 0), i8* getelementptr inbounds ([3 x i8]* @.str7, i32 0, i32 0), i32* %casc, i8* getelementptr inbounds ([24 x i8]* @.str8, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str9, i32 0, i32 0), i8* getelementptr inbounds ([3 x i8]* @.str7, i32 0, i32 0), i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 2), i8* getelementptr inbounds ([11 x i8]* @.str10, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str11, i32 0, i32 0), i8* getelementptr inbounds ([4 x i8]* @.str12, i32 0, i32 0), double* %mSec_per_frame, i8* getelementptr inbounds ([15 x i8]* @.str13, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str14, i32 0, i32 0), i8* getelementptr inbounds ([3 x i8]* @.str7, i32 0, i32 0), i64* getelementptr inbounds (%struct.klatt_frame_t* @def_pars, i32 0, i32 21), i8* getelementptr inbounds ([8 x i8]* @.str15, i32 0, i32 0), i8* getelementptr inbounds ([2 x i8]* @.str16, i32 0, i32 0), i8* getelementptr inbounds ([3 x i8]* @.str7, i32 0, i32 0), i64* getelementptr inbounds (%struct.klatt_frame_t* @def_pars, i32 0, i32 0), i8* getelementptr inbounds ([17 x i8]* @.str17, i32 0, i32 0), i8* null)
+  store i32 %call, i32* %argc.addr, align 4
+  %3 = load i32* %casc, align 4
+  %cmp = icmp sgt i32 %3, 0
+  br i1 %cmp, label %if.then, label %if.else
+
+if.then:                                          ; preds = %entry
+  store i32 1, i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 0), align 4
+  %4 = load i32* %casc, align 4
+  %conv = sext i32 %4 to i64
+  store i64 %conv, i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 5), align 8
+  br label %if.end
+
+if.else:                                          ; preds = %entry
+  store i32 2, i32* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 0), align 4
+  br label %if.end
+
+if.end:                                           ; preds = %if.else, %if.then
+  %5 = load i32* %impulse, align 4
+  %tobool = icmp ne i32 %5, 0
+  br i1 %tobool, label %if.then1, label %if.end2
+
+if.then1:                                         ; preds = %if.end
+  store i64 1, i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 6), align 8
+  br label %if.end2
+
+if.end2:                                          ; preds = %if.then1, %if.end
+  %6 = load i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 4), align 8
+  %conv3 = sitofp i64 %6 to double
+  %7 = load double* %mSec_per_frame, align 8
+  %mul = fmul double %conv3, %7
+  %div = fdiv double %mul, 1.000000e+03
+  %conv4 = fptosi double %div to i64
+  store i64 %conv4, i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 7), align 8
+  %8 = load i32* %argc.addr, align 4
+  ret i32 %8
+}
+
+declare i32 @getargs(i8*, i32, i8**, ...) #1
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }

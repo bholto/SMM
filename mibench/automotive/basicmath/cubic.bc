@@ -1,0 +1,226 @@
+; ModuleID = 'cubic.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+; Function Attrs: nounwind ssp uwtable
+define void @SolveCubic(double %a, double %b, double %c, double %d, i32* %solutions, double* %x) #0 {
+entry:
+  %a.addr = alloca double, align 8
+  %b.addr = alloca double, align 8
+  %c.addr = alloca double, align 8
+  %d.addr = alloca double, align 8
+  %solutions.addr = alloca i32*, align 8
+  %x.addr = alloca double*, align 8
+  %a1 = alloca x86_fp80, align 16
+  %a2 = alloca x86_fp80, align 16
+  %a3 = alloca x86_fp80, align 16
+  %Q = alloca x86_fp80, align 16
+  %R = alloca x86_fp80, align 16
+  %R2_Q3 = alloca double, align 8
+  %theta = alloca double, align 8
+  store double %a, double* %a.addr, align 8
+  store double %b, double* %b.addr, align 8
+  store double %c, double* %c.addr, align 8
+  store double %d, double* %d.addr, align 8
+  store i32* %solutions, i32** %solutions.addr, align 8
+  store double* %x, double** %x.addr, align 8
+  %0 = load double* %b.addr, align 8
+  %1 = load double* %a.addr, align 8
+  %div = fdiv double %0, %1
+  %conv = fpext double %div to x86_fp80
+  store x86_fp80 %conv, x86_fp80* %a1, align 16
+  %2 = load double* %c.addr, align 8
+  %3 = load double* %a.addr, align 8
+  %div1 = fdiv double %2, %3
+  %conv2 = fpext double %div1 to x86_fp80
+  store x86_fp80 %conv2, x86_fp80* %a2, align 16
+  %4 = load double* %d.addr, align 8
+  %5 = load double* %a.addr, align 8
+  %div3 = fdiv double %4, %5
+  %conv4 = fpext double %div3 to x86_fp80
+  store x86_fp80 %conv4, x86_fp80* %a3, align 16
+  %6 = load x86_fp80* %a1, align 16
+  %7 = load x86_fp80* %a1, align 16
+  %mul = fmul x86_fp80 %6, %7
+  %8 = load x86_fp80* %a2, align 16
+  %mul5 = fmul x86_fp80 0xK4000C000000000000000, %8
+  %sub = fsub x86_fp80 %mul, %mul5
+  %div6 = fdiv x86_fp80 %sub, 0xK40029000000000000000
+  store x86_fp80 %div6, x86_fp80* %Q, align 16
+  %9 = load x86_fp80* %a1, align 16
+  %mul7 = fmul x86_fp80 0xK40008000000000000000, %9
+  %10 = load x86_fp80* %a1, align 16
+  %mul8 = fmul x86_fp80 %mul7, %10
+  %11 = load x86_fp80* %a1, align 16
+  %mul9 = fmul x86_fp80 %mul8, %11
+  %12 = load x86_fp80* %a1, align 16
+  %mul10 = fmul x86_fp80 0xK40029000000000000000, %12
+  %13 = load x86_fp80* %a2, align 16
+  %mul11 = fmul x86_fp80 %mul10, %13
+  %sub12 = fsub x86_fp80 %mul9, %mul11
+  %14 = load x86_fp80* %a3, align 16
+  %mul13 = fmul x86_fp80 0xK4003D800000000000000, %14
+  %add = fadd x86_fp80 %sub12, %mul13
+  %div14 = fdiv x86_fp80 %add, 0xK4004D800000000000000
+  store x86_fp80 %div14, x86_fp80* %R, align 16
+  %15 = load x86_fp80* %R, align 16
+  %16 = load x86_fp80* %R, align 16
+  %mul15 = fmul x86_fp80 %15, %16
+  %17 = load x86_fp80* %Q, align 16
+  %18 = load x86_fp80* %Q, align 16
+  %mul16 = fmul x86_fp80 %17, %18
+  %19 = load x86_fp80* %Q, align 16
+  %mul17 = fmul x86_fp80 %mul16, %19
+  %sub18 = fsub x86_fp80 %mul15, %mul17
+  %conv19 = fptrunc x86_fp80 %sub18 to double
+  store double %conv19, double* %R2_Q3, align 8
+  %20 = load double* %R2_Q3, align 8
+  %cmp = fcmp ole double %20, 0.000000e+00
+  br i1 %cmp, label %if.then, label %if.else
+
+if.then:                                          ; preds = %entry
+  %21 = load i32** %solutions.addr, align 8
+  store i32 3, i32* %21, align 4
+  %22 = load x86_fp80* %R, align 16
+  %23 = load x86_fp80* %Q, align 16
+  %24 = load x86_fp80* %Q, align 16
+  %mul21 = fmul x86_fp80 %23, %24
+  %25 = load x86_fp80* %Q, align 16
+  %mul22 = fmul x86_fp80 %mul21, %25
+  %conv23 = fptrunc x86_fp80 %mul22 to double
+  %call = call double @sqrt(double %conv23) #3
+  %conv24 = fpext double %call to x86_fp80
+  %div25 = fdiv x86_fp80 %22, %conv24
+  %conv26 = fptrunc x86_fp80 %div25 to double
+  %call27 = call double @acos(double %conv26) #3
+  store double %call27, double* %theta, align 8
+  %26 = load x86_fp80* %Q, align 16
+  %conv28 = fptrunc x86_fp80 %26 to double
+  %call29 = call double @sqrt(double %conv28) #3
+  %mul30 = fmul double -2.000000e+00, %call29
+  %27 = load double* %theta, align 8
+  %div31 = fdiv double %27, 3.000000e+00
+  %call32 = call double @cos(double %div31) #3
+  %mul33 = fmul double %mul30, %call32
+  %conv34 = fpext double %mul33 to x86_fp80
+  %28 = load x86_fp80* %a1, align 16
+  %div35 = fdiv x86_fp80 %28, 0xK4000C000000000000000
+  %sub36 = fsub x86_fp80 %conv34, %div35
+  %conv37 = fptrunc x86_fp80 %sub36 to double
+  %29 = load double** %x.addr, align 8
+  %arrayidx = getelementptr inbounds double* %29, i64 0
+  store double %conv37, double* %arrayidx, align 8
+  %30 = load x86_fp80* %Q, align 16
+  %conv38 = fptrunc x86_fp80 %30 to double
+  %call39 = call double @sqrt(double %conv38) #3
+  %mul40 = fmul double -2.000000e+00, %call39
+  %31 = load double* %theta, align 8
+  %call41 = call double @atan(double 1.000000e+00) #3
+  %mul42 = fmul double 4.000000e+00, %call41
+  %mul43 = fmul double 2.000000e+00, %mul42
+  %add44 = fadd double %31, %mul43
+  %div45 = fdiv double %add44, 3.000000e+00
+  %call46 = call double @cos(double %div45) #3
+  %mul47 = fmul double %mul40, %call46
+  %conv48 = fpext double %mul47 to x86_fp80
+  %32 = load x86_fp80* %a1, align 16
+  %div49 = fdiv x86_fp80 %32, 0xK4000C000000000000000
+  %sub50 = fsub x86_fp80 %conv48, %div49
+  %conv51 = fptrunc x86_fp80 %sub50 to double
+  %33 = load double** %x.addr, align 8
+  %arrayidx52 = getelementptr inbounds double* %33, i64 1
+  store double %conv51, double* %arrayidx52, align 8
+  %34 = load x86_fp80* %Q, align 16
+  %conv53 = fptrunc x86_fp80 %34 to double
+  %call54 = call double @sqrt(double %conv53) #3
+  %mul55 = fmul double -2.000000e+00, %call54
+  %35 = load double* %theta, align 8
+  %call56 = call double @atan(double 1.000000e+00) #3
+  %mul57 = fmul double 4.000000e+00, %call56
+  %mul58 = fmul double 4.000000e+00, %mul57
+  %add59 = fadd double %35, %mul58
+  %div60 = fdiv double %add59, 3.000000e+00
+  %call61 = call double @cos(double %div60) #3
+  %mul62 = fmul double %mul55, %call61
+  %conv63 = fpext double %mul62 to x86_fp80
+  %36 = load x86_fp80* %a1, align 16
+  %div64 = fdiv x86_fp80 %36, 0xK4000C000000000000000
+  %sub65 = fsub x86_fp80 %conv63, %div64
+  %conv66 = fptrunc x86_fp80 %sub65 to double
+  %37 = load double** %x.addr, align 8
+  %arrayidx67 = getelementptr inbounds double* %37, i64 2
+  store double %conv66, double* %arrayidx67, align 8
+  br label %if.end
+
+if.else:                                          ; preds = %entry
+  %38 = load i32** %solutions.addr, align 8
+  store i32 1, i32* %38, align 4
+  %39 = load double* %R2_Q3, align 8
+  %call68 = call double @sqrt(double %39) #3
+  %40 = load x86_fp80* %R, align 16
+  %conv69 = fptrunc x86_fp80 %40 to double
+  %call70 = call double @fabs(double %conv69) #3
+  %add71 = fadd double %call68, %call70
+  %41 = call double @llvm.pow.f64(double %add71, double 0x3FD5555555555555)
+  %42 = load double** %x.addr, align 8
+  %arrayidx72 = getelementptr inbounds double* %42, i64 0
+  store double %41, double* %arrayidx72, align 8
+  %43 = load x86_fp80* %Q, align 16
+  %44 = load double** %x.addr, align 8
+  %arrayidx73 = getelementptr inbounds double* %44, i64 0
+  %45 = load double* %arrayidx73, align 8
+  %conv74 = fpext double %45 to x86_fp80
+  %div75 = fdiv x86_fp80 %43, %conv74
+  %46 = load double** %x.addr, align 8
+  %arrayidx76 = getelementptr inbounds double* %46, i64 0
+  %47 = load double* %arrayidx76, align 8
+  %conv77 = fpext double %47 to x86_fp80
+  %add78 = fadd x86_fp80 %conv77, %div75
+  %conv79 = fptrunc x86_fp80 %add78 to double
+  store double %conv79, double* %arrayidx76, align 8
+  %48 = load x86_fp80* %R, align 16
+  %cmp80 = fcmp olt x86_fp80 %48, 0xK00000000000000000000
+  %cond = select i1 %cmp80, i32 1, i32 -1
+  %conv82 = sitofp i32 %cond to double
+  %49 = load double** %x.addr, align 8
+  %arrayidx83 = getelementptr inbounds double* %49, i64 0
+  %50 = load double* %arrayidx83, align 8
+  %mul84 = fmul double %50, %conv82
+  store double %mul84, double* %arrayidx83, align 8
+  %51 = load x86_fp80* %a1, align 16
+  %div85 = fdiv x86_fp80 %51, 0xK4000C000000000000000
+  %52 = load double** %x.addr, align 8
+  %arrayidx86 = getelementptr inbounds double* %52, i64 0
+  %53 = load double* %arrayidx86, align 8
+  %conv87 = fpext double %53 to x86_fp80
+  %sub88 = fsub x86_fp80 %conv87, %div85
+  %conv89 = fptrunc x86_fp80 %sub88 to double
+  store double %conv89, double* %arrayidx86, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.else, %if.then
+  ret void
+}
+
+; Function Attrs: nounwind readnone
+declare double @acos(double) #1
+
+; Function Attrs: nounwind readnone
+declare double @sqrt(double) #1
+
+; Function Attrs: nounwind readnone
+declare double @cos(double) #1
+
+; Function Attrs: nounwind readnone
+declare double @atan(double) #1
+
+; Function Attrs: nounwind readnone
+declare double @fabs(double) #1
+
+; Function Attrs: nounwind readonly
+declare double @llvm.pow.f64(double, double) #2
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readnone "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly }
+attributes #3 = { nounwind readnone }

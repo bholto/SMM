@@ -1,0 +1,83 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:743:1: warning: type specifier missing, defaults to 'int' [-Wimplicit-int]
+main(){return(0);}
+^~~~
+1 warning generated.
+configure:830:67: warning: implicitly declaring library function 'exit' with type 'void (int) __attribute__((noreturn))'
+if (XOR (islower (i), ISLOWER (i)) || toupper (i) != TOUPPER (i)) exit(2);
+                                                                  ^
+configure:830:67: note: please include the header <stdlib.h> or explicitly provide a declaration for 'exit'
+1 warning generated.
+configure:1166:1: warning: control reaches end of non-void function [-Wreturn-type]
+} int func PROTO((float a));
+^
+configure:1167:19: warning: promoted type 'double' of K&R function parameter is not compatible with the parameter type 'float' declared in a previous prototype [-Wknr-promoted-parameter]
+int func(a) float a; { 
+                  ^
+configure:1166:25: note: previous declaration is here
+} int func PROTO((float a));
+                        ^
+././proto.h:5:21: note: expanded from macro 'PROTO'
+#define PROTO(ARGS) ARGS
+                    ^
+2 warnings generated.
+configure:1247:1: warning: implicit declaration of function 'gdbm_open' is invalid in C99 [-Wimplicit-function-declaration]
+gdbm_open()
+^
+1 warning generated.
+ld: library not found for -lgdbm
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+configure:1334:1: warning: implicitly declaring library function 'atan' with type 'double (double)'
+atan()
+^
+configure:1334:1: note: please include the header <math.h> or explicitly provide a declaration for 'atan'
+configure:1334:6: error: too few arguments to function call, expected 1, have 0
+atan()
+~~~~ ^
+1 warning and 1 error generated.
+configure:1373:1: warning: implicitly declaring library function 'atan' with type 'double (double)'
+atan()
+^
+configure:1373:1: note: please include the header <math.h> or explicitly provide a declaration for 'atan'
+configure:1373:6: error: too few arguments to function call, expected 1, have 0
+atan()
+~~~~ ^
+1 warning and 1 error generated.
+configure:1461:10: fatal error: 'X11/Intrinsic.h' file not found
+#include <X11/Intrinsic.h>
+         ^
+1 error generated.
+configure:1527:1: warning: implicit declaration of function 'XtMalloc' is invalid in C99 [-Wimplicit-function-declaration]
+XtMalloc()
+^
+1 warning generated.
+ld: library not found for -lXt
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+configure:1840:1: warning: implicit declaration of function 'socket' is invalid in C99 [-Wimplicit-function-declaration]
+socket()
+^
+1 warning generated.
+ld: library not found for -lsocket
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+configure:1873:1: warning: implicit declaration of function 'inet_addr' is invalid in C99 [-Wimplicit-function-declaration]
+inet_addr()
+^
+1 warning generated.
+ld: library not found for -lnsl
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+configure:1906:1: warning: implicit declaration of function 'XauReadAuth' is invalid in C99 [-Wimplicit-function-declaration]
+XauReadAuth()
+^
+1 warning generated.
+ld: library not found for -lX11
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+configure:1944:10: fatal error: 'audio/audiolib.h' file not found
+#include <audio/audiolib.h>
+         ^
+1 error generated.
+configure:2069:10: fatal error: 'termio.h' file not found
+#include <termio.h>
+         ^
+1 error generated.

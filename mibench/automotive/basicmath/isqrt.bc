@@ -1,0 +1,91 @@
+; ModuleID = 'isqrt.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+%struct.int_sqrt = type { i32, i32 }
+
+; Function Attrs: nounwind ssp uwtable
+define void @usqrt(i64 %x, %struct.int_sqrt* %q) #0 {
+entry:
+  %x.addr = alloca i64, align 8
+  %q.addr = alloca %struct.int_sqrt*, align 8
+  %a = alloca i64, align 8
+  %r = alloca i64, align 8
+  %e = alloca i64, align 8
+  %i = alloca i32, align 4
+  store i64 %x, i64* %x.addr, align 8
+  store %struct.int_sqrt* %q, %struct.int_sqrt** %q.addr, align 8
+  store i64 0, i64* %a, align 8
+  store i64 0, i64* %r, align 8
+  store i64 0, i64* %e, align 8
+  store i32 0, i32* %i, align 4
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %entry
+  %0 = load i32* %i, align 4
+  %cmp = icmp slt i32 %0, 32
+  br i1 %cmp, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.cond
+  %1 = load i64* %r, align 8
+  %shl = shl i64 %1, 2
+  %2 = load i64* %x.addr, align 8
+  %and = and i64 %2, 3221225472
+  %shr = lshr i64 %and, 30
+  %add = add i64 %shl, %shr
+  store i64 %add, i64* %r, align 8
+  %3 = load i64* %x.addr, align 8
+  %shl1 = shl i64 %3, 2
+  store i64 %shl1, i64* %x.addr, align 8
+  %4 = load i64* %a, align 8
+  %shl2 = shl i64 %4, 1
+  store i64 %shl2, i64* %a, align 8
+  %5 = load i64* %a, align 8
+  %shl3 = shl i64 %5, 1
+  %add4 = add i64 %shl3, 1
+  store i64 %add4, i64* %e, align 8
+  %6 = load i64* %r, align 8
+  %7 = load i64* %e, align 8
+  %cmp5 = icmp uge i64 %6, %7
+  br i1 %cmp5, label %if.then, label %if.end
+
+if.then:                                          ; preds = %for.body
+  %8 = load i64* %e, align 8
+  %9 = load i64* %r, align 8
+  %sub = sub i64 %9, %8
+  store i64 %sub, i64* %r, align 8
+  %10 = load i64* %a, align 8
+  %inc = add i64 %10, 1
+  store i64 %inc, i64* %a, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %for.body
+  br label %for.inc
+
+for.inc:                                          ; preds = %if.end
+  %11 = load i32* %i, align 4
+  %inc6 = add nsw i32 %11, 1
+  store i32 %inc6, i32* %i, align 4
+  br label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  %12 = load %struct.int_sqrt** %q.addr, align 8
+  %13 = bitcast %struct.int_sqrt* %12 to i8*
+  %14 = bitcast i64* %a to i8*
+  %15 = load %struct.int_sqrt** %q.addr, align 8
+  %16 = bitcast %struct.int_sqrt* %15 to i8*
+  %17 = call i64 @llvm.objectsize.i64(i8* %16, i1 false)
+  %call = call i8* @__memcpy_chk(i8* %13, i8* %14, i64 8, i64 %17) #3
+  ret void
+}
+
+; Function Attrs: nounwind
+declare i8* @__memcpy_chk(i8*, i8*, i64, i64) #1
+
+; Function Attrs: nounwind readnone
+declare i64 @llvm.objectsize.i64(i8*, i1) #2
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readnone }
+attributes #3 = { nounwind }

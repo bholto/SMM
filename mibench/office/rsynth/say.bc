@@ -1,0 +1,1710 @@
+; ModuleID = 'say.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+%struct.__sFILE = type { i8*, i32, i32, i16, i16, %struct.__sbuf, i32, i8*, i32 (i8*)*, i32 (i8*, i8*, i32)*, i64 (i8*, i64, i32)*, i32 (i8*, i8*, i32)*, %struct.__sbuf, %struct.__sFILEX*, i32, [3 x i8], [1 x i8], %struct.__sbuf, i32, i64 }
+%struct.__sbuf = type { i8*, i32 }
+%struct.__sFILEX = type opaque
+%struct.klatt_global_t = type { i32, i32, i32, i32, i64, i64, i64, i64 }
+%struct.darray_t = type { i8*, i32, i32, i16, i16 }
+
+@.str = private unnamed_addr constant [60 x i8] c"$Id: say.c,v 1.13 1994/11/08 13:30:50 a904209 Exp a904209 $\00", align 1
+@say_id = global i8* getelementptr inbounds ([60 x i8]* @.str, i32 0, i32 0), align 8
+@.str1 = private unnamed_addr constant [4 x i8] c"say\00", align 1
+@program = global i8* getelementptr inbounds ([4 x i8]* @.str1, i32 0, i32 0), align 8
+@__stderrp = external global %struct.__sFILE*
+@.str2 = private unnamed_addr constant [17 x i8] c"Spelling '%.*s'\0A\00", align 1
+@ASCII = external global [0 x i8*]
+@klatt_global = external global %struct.klatt_global_t
+@.str3 = private unnamed_addr constant [6 x i8] c"%.*s\0A\00", align 1
+@file_write = external global void (i32, i16*)*
+@.str4 = private unnamed_addr constant [6 x i8] c"point\00", align 1
+@verbose = internal global i32 0, align 4
+@.str5 = private unnamed_addr constant [5 x i8] c"Misc\00", align 1
+@.str6 = private unnamed_addr constant [2 x i8] c"v\00", align 1
+@.str7 = private unnamed_addr constant [28 x i8] c"Verbose, show phonetic form\00", align 1
+@help_only = external global i32
+@.str8 = private unnamed_addr constant [43 x i8] c"Usage: %s [options as above] words to say\0A\00", align 1
+@.str9 = private unnamed_addr constant [44 x i8] c"or     %s [options as above] < file-to-say\0A\00", align 1
+@.str10 = private unnamed_addr constant [6 x i8] c"(%s)\0A\00", align 1
+@Revision = external global i8*
+@__stdinp = external global %struct.__sFILE*
+@file_term = external global void ()*
+@dict = external global i8*
+@dialect = external global i8**
+@.str11 = private unnamed_addr constant [17 x i8] c"Guess %p '%.*s'\0A\00", align 1
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @spell_out(i8* %word, i32 %n, %struct.darray_t* %phone) #0 {
+entry:
+  %word.addr = alloca i8*, align 8
+  %n.addr = alloca i32, align 4
+  %phone.addr = alloca %struct.darray_t*, align 8
+  %nph = alloca i32, align 4
+  store i8* %word, i8** %word.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  store %struct.darray_t* %phone, %struct.darray_t** %phone.addr, align 8
+  store i32 0, i32* %nph, align 4
+  %0 = load %struct.__sFILE** @__stderrp, align 8
+  %1 = load i32* %n.addr, align 4
+  %2 = load i8** %word.addr, align 8
+  %call = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %0, i8* getelementptr inbounds ([17 x i8]* @.str2, i32 0, i32 0), i32 %1, i8* %2)
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %entry
+  %3 = load i32* %n.addr, align 4
+  %dec = add nsw i32 %3, -1
+  store i32 %dec, i32* %n.addr, align 4
+  %cmp = icmp sgt i32 %3, 0
+  br i1 %cmp, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %4 = load i8** %word.addr, align 8
+  %incdec.ptr = getelementptr inbounds i8* %4, i32 1
+  store i8* %incdec.ptr, i8** %word.addr, align 8
+  %5 = load i8* %4, align 1
+  %conv = sext i8 %5 to i32
+  %and = and i32 %conv, 127
+  %idxprom = sext i32 %and to i64
+  %arrayidx = getelementptr inbounds [0 x i8*]* @ASCII, i32 0, i64 %idxprom
+  %6 = load i8** %arrayidx, align 1
+  %7 = load %struct.darray_t** %phone.addr, align 8
+  %call1 = call i32 @xlate_string(i8* %6, %struct.darray_t* %7)
+  %8 = load i32* %nph, align 4
+  %add = add i32 %8, %call1
+  store i32 %add, i32* %nph, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %9 = load i32* %nph, align 4
+  ret i32 %9
+}
+
+declare i32 @fprintf(%struct.__sFILE*, i8*, ...) #1
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @xlate_string(i8* %string, %struct.darray_t* %phone) #0 {
+entry:
+  %string.addr = alloca i8*, align 8
+  %phone.addr = alloca %struct.darray_t*, align 8
+  %nph = alloca i32, align 4
+  %s = alloca i8*, align 8
+  %ch = alloca i8, align 1
+  %word = alloca i8*, align 8
+  %sign = alloca i32, align 4
+  %value = alloca i64, align 8
+  %word143 = alloca i8*, align 8
+  %e = alloca i8*, align 8
+  store i8* %string, i8** %string.addr, align 8
+  store %struct.darray_t* %phone, %struct.darray_t** %phone.addr, align 8
+  store i32 0, i32* %nph, align 4
+  %0 = load i8** %string.addr, align 8
+  store i8* %0, i8** %s, align 8
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %entry
+  %1 = load i8** %s, align 8
+  %2 = load i8* %1, align 1
+  store i8 %2, i8* %ch, align 1
+  %conv = sext i8 %2 to i32
+  %call = call i32 @isspace(i32 %conv)
+  %tobool = icmp ne i32 %call, 0
+  br i1 %tobool, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %3 = load i8** %s, align 8
+  %incdec.ptr = getelementptr inbounds i8* %3, i32 1
+  store i8* %incdec.ptr, i8** %s, align 8
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  br label %while.cond1
+
+while.cond1:                                      ; preds = %while.end232, %while.end
+  %4 = load i8** %s, align 8
+  %5 = load i8* %4, align 1
+  store i8 %5, i8* %ch, align 1
+  %tobool2 = icmp ne i8 %5, 0
+  br i1 %tobool2, label %while.body3, label %while.end233
+
+while.body3:                                      ; preds = %while.cond1
+  %6 = load i8** %s, align 8
+  store i8* %6, i8** %word, align 8
+  %7 = load i8* %ch, align 1
+  %conv4 = sext i8 %7 to i32
+  %call5 = call i32 @isalpha(i32 %conv4)
+  %tobool6 = icmp ne i32 %call5, 0
+  br i1 %tobool6, label %if.then, label %if.else69
+
+if.then:                                          ; preds = %while.body3
+  br label %while.cond7
+
+while.cond7:                                      ; preds = %while.body23, %if.then
+  %8 = load i8** %s, align 8
+  %9 = load i8* %8, align 1
+  store i8 %9, i8* %ch, align 1
+  %conv8 = sext i8 %9 to i32
+  %call9 = call i32 @isalpha(i32 %conv8)
+  %tobool10 = icmp ne i32 %call9, 0
+  br i1 %tobool10, label %lor.end, label %lor.rhs
+
+lor.rhs:                                          ; preds = %while.cond7
+  %10 = load i8* %ch, align 1
+  %conv11 = sext i8 %10 to i32
+  %cmp = icmp eq i32 %conv11, 39
+  br i1 %cmp, label %land.rhs, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %lor.rhs
+  %11 = load i8* %ch, align 1
+  %conv13 = sext i8 %11 to i32
+  %cmp14 = icmp eq i32 %conv13, 45
+  br i1 %cmp14, label %land.rhs, label %lor.lhs.false16
+
+lor.lhs.false16:                                  ; preds = %lor.lhs.false
+  %12 = load i8* %ch, align 1
+  %conv17 = sext i8 %12 to i32
+  %cmp18 = icmp eq i32 %conv17, 46
+  br i1 %cmp18, label %land.rhs, label %land.end
+
+land.rhs:                                         ; preds = %lor.lhs.false16, %lor.lhs.false, %lor.rhs
+  %13 = load i8** %s, align 8
+  %arrayidx = getelementptr inbounds i8* %13, i64 1
+  %14 = load i8* %arrayidx, align 1
+  %conv20 = sext i8 %14 to i32
+  %call21 = call i32 @isalpha(i32 %conv20)
+  %tobool22 = icmp ne i32 %call21, 0
+  br label %land.end
+
+land.end:                                         ; preds = %land.rhs, %lor.lhs.false16
+  %15 = phi i1 [ false, %lor.lhs.false16 ], [ %tobool22, %land.rhs ]
+  br label %lor.end
+
+lor.end:                                          ; preds = %land.end, %while.cond7
+  %16 = phi i1 [ true, %while.cond7 ], [ %15, %land.end ]
+  br i1 %16, label %while.body23, label %while.end25
+
+while.body23:                                     ; preds = %lor.end
+  %17 = load i8** %s, align 8
+  %incdec.ptr24 = getelementptr inbounds i8* %17, i32 1
+  store i8* %incdec.ptr24, i8** %s, align 8
+  br label %while.cond7
+
+while.end25:                                      ; preds = %lor.end
+  %18 = load i8* %ch, align 1
+  %tobool26 = icmp ne i8 %18, 0
+  br i1 %tobool26, label %lor.lhs.false27, label %if.then42
+
+lor.lhs.false27:                                  ; preds = %while.end25
+  %19 = load i8* %ch, align 1
+  %conv28 = sext i8 %19 to i32
+  %call29 = call i32 @isspace(i32 %conv28)
+  %tobool30 = icmp ne i32 %call29, 0
+  br i1 %tobool30, label %if.then42, label %lor.lhs.false31
+
+lor.lhs.false31:                                  ; preds = %lor.lhs.false27
+  %20 = load i8* %ch, align 1
+  %conv32 = sext i8 %20 to i32
+  %call33 = call i32 @ispunct(i32 %conv32)
+  %tobool34 = icmp ne i32 %call33, 0
+  br i1 %tobool34, label %if.then42, label %lor.lhs.false35
+
+lor.lhs.false35:                                  ; preds = %lor.lhs.false31
+  %21 = load i8* %ch, align 1
+  %conv36 = sext i8 %21 to i32
+  %call37 = call i32 @isdigit(i32 %conv36)
+  %tobool38 = icmp ne i32 %call37, 0
+  br i1 %tobool38, label %land.lhs.true, label %if.else
+
+land.lhs.true:                                    ; preds = %lor.lhs.false35
+  %22 = load i8** %word, align 8
+  %23 = load i8** %s, align 8
+  %24 = load i8** %word, align 8
+  %sub.ptr.lhs.cast = ptrtoint i8* %23 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %24 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %conv39 = trunc i64 %sub.ptr.sub to i32
+  %call40 = call i32 @suspect_word(i8* %22, i32 %conv39)
+  %tobool41 = icmp ne i32 %call40, 0
+  br i1 %tobool41, label %if.else, label %if.then42
+
+if.then42:                                        ; preds = %land.lhs.true, %lor.lhs.false31, %lor.lhs.false27, %while.end25
+  %25 = load i8** %word, align 8
+  %26 = load i8** %s, align 8
+  %27 = load i8** %word, align 8
+  %sub.ptr.lhs.cast43 = ptrtoint i8* %26 to i64
+  %sub.ptr.rhs.cast44 = ptrtoint i8* %27 to i64
+  %sub.ptr.sub45 = sub i64 %sub.ptr.lhs.cast43, %sub.ptr.rhs.cast44
+  %conv46 = trunc i64 %sub.ptr.sub45 to i32
+  %28 = load %struct.darray_t** %phone.addr, align 8
+  %call47 = call i32 @xlate_word(i8* %25, i32 %conv46, %struct.darray_t* %28)
+  %29 = load i32* %nph, align 4
+  %add = add i32 %29, %call47
+  store i32 %add, i32* %nph, align 4
+  br label %if.end
+
+if.else:                                          ; preds = %land.lhs.true, %lor.lhs.false35
+  br label %while.cond48
+
+while.cond48:                                     ; preds = %while.body60, %if.else
+  %30 = load i8** %s, align 8
+  %31 = load i8* %30, align 1
+  store i8 %31, i8* %ch, align 1
+  %conv49 = sext i8 %31 to i32
+  %tobool50 = icmp ne i32 %conv49, 0
+  br i1 %tobool50, label %land.lhs.true51, label %land.end59
+
+land.lhs.true51:                                  ; preds = %while.cond48
+  %32 = load i8* %ch, align 1
+  %conv52 = sext i8 %32 to i32
+  %call53 = call i32 @isspace(i32 %conv52)
+  %tobool54 = icmp ne i32 %call53, 0
+  br i1 %tobool54, label %land.end59, label %land.rhs55
+
+land.rhs55:                                       ; preds = %land.lhs.true51
+  %33 = load i8* %ch, align 1
+  %conv56 = sext i8 %33 to i32
+  %call57 = call i32 @ispunct(i32 %conv56)
+  %tobool58 = icmp ne i32 %call57, 0
+  %lnot = xor i1 %tobool58, true
+  br label %land.end59
+
+land.end59:                                       ; preds = %land.rhs55, %land.lhs.true51, %while.cond48
+  %34 = phi i1 [ false, %land.lhs.true51 ], [ false, %while.cond48 ], [ %lnot, %land.rhs55 ]
+  br i1 %34, label %while.body60, label %while.end62
+
+while.body60:                                     ; preds = %land.end59
+  %35 = load i8** %s, align 8
+  %incdec.ptr61 = getelementptr inbounds i8* %35, i32 1
+  store i8* %incdec.ptr61, i8** %s, align 8
+  br label %while.cond48
+
+while.end62:                                      ; preds = %land.end59
+  %36 = load i8** %word, align 8
+  %37 = load i8** %s, align 8
+  %38 = load i8** %word, align 8
+  %sub.ptr.lhs.cast63 = ptrtoint i8* %37 to i64
+  %sub.ptr.rhs.cast64 = ptrtoint i8* %38 to i64
+  %sub.ptr.sub65 = sub i64 %sub.ptr.lhs.cast63, %sub.ptr.rhs.cast64
+  %conv66 = trunc i64 %sub.ptr.sub65 to i32
+  %39 = load %struct.darray_t** %phone.addr, align 8
+  %call67 = call i32 @spell_out(i8* %36, i32 %conv66, %struct.darray_t* %39)
+  %40 = load i32* %nph, align 4
+  %add68 = add i32 %40, %call67
+  store i32 %add68, i32* %nph, align 4
+  br label %if.end
+
+if.end:                                           ; preds = %while.end62, %if.then42
+  br label %if.end225
+
+if.else69:                                        ; preds = %while.body3
+  %41 = load i8* %ch, align 1
+  %conv70 = sext i8 %41 to i32
+  %call71 = call i32 @isdigit(i32 %conv70)
+  %tobool72 = icmp ne i32 %call71, 0
+  br i1 %tobool72, label %if.then82, label %lor.lhs.false73
+
+lor.lhs.false73:                                  ; preds = %if.else69
+  %42 = load i8* %ch, align 1
+  %conv74 = sext i8 %42 to i32
+  %cmp75 = icmp eq i32 %conv74, 45
+  br i1 %cmp75, label %land.lhs.true77, label %if.else135
+
+land.lhs.true77:                                  ; preds = %lor.lhs.false73
+  %43 = load i8** %s, align 8
+  %arrayidx78 = getelementptr inbounds i8* %43, i64 1
+  %44 = load i8* %arrayidx78, align 1
+  %conv79 = sext i8 %44 to i32
+  %call80 = call i32 @isdigit(i32 %conv79)
+  %tobool81 = icmp ne i32 %call80, 0
+  br i1 %tobool81, label %if.then82, label %if.else135
+
+if.then82:                                        ; preds = %land.lhs.true77, %if.else69
+  %45 = load i8* %ch, align 1
+  %conv83 = sext i8 %45 to i32
+  %cmp84 = icmp eq i32 %conv83, 45
+  %cond = select i1 %cmp84, i32 -1, i32 1
+  store i32 %cond, i32* %sign, align 4
+  store i64 0, i64* %value, align 8
+  %46 = load i32* %sign, align 4
+  %cmp86 = icmp slt i32 %46, 0
+  br i1 %cmp86, label %if.then88, label %if.end90
+
+if.then88:                                        ; preds = %if.then82
+  %47 = load i8** %s, align 8
+  %incdec.ptr89 = getelementptr inbounds i8* %47, i32 1
+  store i8* %incdec.ptr89, i8** %s, align 8
+  %48 = load i8* %incdec.ptr89, align 1
+  store i8 %48, i8* %ch, align 1
+  br label %if.end90
+
+if.end90:                                         ; preds = %if.then88, %if.then82
+  br label %while.cond91
+
+while.cond91:                                     ; preds = %while.body95, %if.end90
+  %49 = load i8** %s, align 8
+  %50 = load i8* %49, align 1
+  store i8 %50, i8* %ch, align 1
+  %conv92 = sext i8 %50 to i32
+  %call93 = call i32 @isdigit(i32 %conv92)
+  %tobool94 = icmp ne i32 %call93, 0
+  br i1 %tobool94, label %while.body95, label %while.end99
+
+while.body95:                                     ; preds = %while.cond91
+  %51 = load i64* %value, align 8
+  %mul = mul nsw i64 %51, 10
+  %52 = load i8* %ch, align 1
+  %conv96 = sext i8 %52 to i64
+  %add97 = add nsw i64 %mul, %conv96
+  %sub = sub nsw i64 %add97, 48
+  store i64 %sub, i64* %value, align 8
+  %53 = load i8** %s, align 8
+  %incdec.ptr98 = getelementptr inbounds i8* %53, i32 1
+  store i8* %incdec.ptr98, i8** %s, align 8
+  br label %while.cond91
+
+while.end99:                                      ; preds = %while.cond91
+  %54 = load i8* %ch, align 1
+  %conv100 = sext i8 %54 to i32
+  %cmp101 = icmp eq i32 %conv100, 46
+  br i1 %cmp101, label %land.lhs.true103, label %if.else129
+
+land.lhs.true103:                                 ; preds = %while.end99
+  %55 = load i8** %s, align 8
+  %arrayidx104 = getelementptr inbounds i8* %55, i64 1
+  %56 = load i8* %arrayidx104, align 1
+  %conv105 = sext i8 %56 to i32
+  %call106 = call i32 @isdigit(i32 %conv105)
+  %tobool107 = icmp ne i32 %call106, 0
+  br i1 %tobool107, label %if.then108, label %if.else129
+
+if.then108:                                       ; preds = %land.lhs.true103
+  %57 = load i8** %s, align 8
+  %incdec.ptr109 = getelementptr inbounds i8* %57, i32 1
+  store i8* %incdec.ptr109, i8** %s, align 8
+  store i8* %incdec.ptr109, i8** %word, align 8
+  %58 = load i64* %value, align 8
+  %59 = load i32* %sign, align 4
+  %conv110 = sext i32 %59 to i64
+  %mul111 = mul nsw i64 %58, %conv110
+  %60 = load %struct.darray_t** %phone.addr, align 8
+  %call112 = call i32 @xlate_cardinal(i64 %mul111, %struct.darray_t* %60)
+  %61 = load i32* %nph, align 4
+  %add113 = add i32 %61, %call112
+  store i32 %add113, i32* %nph, align 4
+  %62 = load %struct.darray_t** %phone.addr, align 8
+  %call114 = call i32 @xlate_string(i8* getelementptr inbounds ([6 x i8]* @.str4, i32 0, i32 0), %struct.darray_t* %62)
+  %63 = load i32* %nph, align 4
+  %add115 = add i32 %63, %call114
+  store i32 %add115, i32* %nph, align 4
+  br label %while.cond116
+
+while.cond116:                                    ; preds = %while.body120, %if.then108
+  %64 = load i8** %s, align 8
+  %65 = load i8* %64, align 1
+  store i8 %65, i8* %ch, align 1
+  %conv117 = sext i8 %65 to i32
+  %call118 = call i32 @isdigit(i32 %conv117)
+  %tobool119 = icmp ne i32 %call118, 0
+  br i1 %tobool119, label %while.body120, label %while.end122
+
+while.body120:                                    ; preds = %while.cond116
+  %66 = load i8** %s, align 8
+  %incdec.ptr121 = getelementptr inbounds i8* %66, i32 1
+  store i8* %incdec.ptr121, i8** %s, align 8
+  br label %while.cond116
+
+while.end122:                                     ; preds = %while.cond116
+  %67 = load i8** %word, align 8
+  %68 = load i8** %s, align 8
+  %69 = load i8** %word, align 8
+  %sub.ptr.lhs.cast123 = ptrtoint i8* %68 to i64
+  %sub.ptr.rhs.cast124 = ptrtoint i8* %69 to i64
+  %sub.ptr.sub125 = sub i64 %sub.ptr.lhs.cast123, %sub.ptr.rhs.cast124
+  %conv126 = trunc i64 %sub.ptr.sub125 to i32
+  %70 = load %struct.darray_t** %phone.addr, align 8
+  %call127 = call i32 @spell_out(i8* %67, i32 %conv126, %struct.darray_t* %70)
+  %71 = load i32* %nph, align 4
+  %add128 = add i32 %71, %call127
+  store i32 %add128, i32* %nph, align 4
+  br label %if.end134
+
+if.else129:                                       ; preds = %land.lhs.true103, %while.end99
+  %72 = load i64* %value, align 8
+  %73 = load i32* %sign, align 4
+  %conv130 = sext i32 %73 to i64
+  %mul131 = mul nsw i64 %72, %conv130
+  %74 = load %struct.darray_t** %phone.addr, align 8
+  %call132 = call i32 @xlate_cardinal(i64 %mul131, %struct.darray_t* %74)
+  %75 = load i32* %nph, align 4
+  %add133 = add i32 %75, %call132
+  store i32 %add133, i32* %nph, align 4
+  br label %if.end134
+
+if.end134:                                        ; preds = %if.else129, %while.end122
+  br label %if.end224
+
+if.else135:                                       ; preds = %land.lhs.true77, %lor.lhs.false73
+  %76 = load i8* %ch, align 1
+  %conv136 = sext i8 %76 to i32
+  %cmp137 = icmp eq i32 %conv136, 91
+  br i1 %cmp137, label %land.lhs.true139, label %if.else161
+
+land.lhs.true139:                                 ; preds = %if.else135
+  %77 = load i8** %s, align 8
+  %call140 = call i8* @strchr(i8* %77, i32 93)
+  %tobool141 = icmp ne i8* %call140, null
+  br i1 %tobool141, label %if.then142, label %if.else161
+
+if.then142:                                       ; preds = %land.lhs.true139
+  %78 = load i8** %s, align 8
+  store i8* %78, i8** %word143, align 8
+  br label %while.cond144
+
+while.cond144:                                    ; preds = %while.body153, %if.then142
+  %79 = load i8** %s, align 8
+  %80 = load i8* %79, align 1
+  %conv145 = sext i8 %80 to i32
+  %tobool146 = icmp ne i32 %conv145, 0
+  br i1 %tobool146, label %land.rhs147, label %land.end152
+
+land.rhs147:                                      ; preds = %while.cond144
+  %81 = load i8** %s, align 8
+  %incdec.ptr148 = getelementptr inbounds i8* %81, i32 1
+  store i8* %incdec.ptr148, i8** %s, align 8
+  %82 = load i8* %81, align 1
+  %conv149 = sext i8 %82 to i32
+  %cmp150 = icmp ne i32 %conv149, 93
+  br label %land.end152
+
+land.end152:                                      ; preds = %land.rhs147, %while.cond144
+  %83 = phi i1 [ false, %while.cond144 ], [ %cmp150, %land.rhs147 ]
+  br i1 %83, label %while.body153, label %while.end154
+
+while.body153:                                    ; preds = %land.end152
+  br label %while.cond144
+
+while.end154:                                     ; preds = %land.end152
+  %84 = load i8** %word143, align 8
+  %85 = load i8** %s, align 8
+  %86 = load i8** %word143, align 8
+  %sub.ptr.lhs.cast155 = ptrtoint i8* %85 to i64
+  %sub.ptr.rhs.cast156 = ptrtoint i8* %86 to i64
+  %sub.ptr.sub157 = sub i64 %sub.ptr.lhs.cast155, %sub.ptr.rhs.cast156
+  %conv158 = trunc i64 %sub.ptr.sub157 to i32
+  %87 = load %struct.darray_t** %phone.addr, align 8
+  %call159 = call i32 @xlate_word(i8* %84, i32 %conv158, %struct.darray_t* %87)
+  %88 = load i32* %nph, align 4
+  %add160 = add i32 %88, %call159
+  store i32 %add160, i32* %nph, align 4
+  br label %if.end223
+
+if.else161:                                       ; preds = %land.lhs.true139, %if.else135
+  %89 = load i8* %ch, align 1
+  %conv162 = sext i8 %89 to i32
+  %call163 = call i32 @ispunct(i32 %conv162)
+  %tobool164 = icmp ne i32 %call163, 0
+  br i1 %tobool164, label %if.then165, label %if.else203
+
+if.then165:                                       ; preds = %if.else161
+  %90 = load i8* %ch, align 1
+  %conv166 = sext i8 %90 to i32
+  switch i32 %conv166, label %sw.default [
+    i32 33, label %sw.bb
+    i32 63, label %sw.bb
+    i32 46, label %sw.bb
+    i32 34, label %sw.bb183
+    i32 58, label %sw.bb183
+    i32 45, label %sw.bb183
+    i32 59, label %sw.bb183
+    i32 44, label %sw.bb183
+    i32 40, label %sw.bb183
+    i32 41, label %sw.bb183
+    i32 91, label %sw.bb186
+  ]
+
+sw.bb:                                            ; preds = %if.then165, %if.then165, %if.then165
+  %91 = load i8** %s, align 8
+  %arrayidx167 = getelementptr inbounds i8* %91, i64 1
+  %92 = load i8* %arrayidx167, align 1
+  %tobool168 = icmp ne i8 %92, 0
+  br i1 %tobool168, label %lor.lhs.false169, label %land.lhs.true174
+
+lor.lhs.false169:                                 ; preds = %sw.bb
+  %93 = load i8** %s, align 8
+  %arrayidx170 = getelementptr inbounds i8* %93, i64 1
+  %94 = load i8* %arrayidx170, align 1
+  %conv171 = sext i8 %94 to i32
+  %call172 = call i32 @isspace(i32 %conv171)
+  %tobool173 = icmp ne i32 %call172, 0
+  br i1 %tobool173, label %land.lhs.true174, label %if.end180
+
+land.lhs.true174:                                 ; preds = %lor.lhs.false169, %sw.bb
+  %95 = load %struct.darray_t** %phone.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %95, i32 0, i32 1
+  %96 = load i32* %items, align 4
+  %tobool175 = icmp ne i32 %96, 0
+  br i1 %tobool175, label %if.then176, label %if.end180
+
+if.then176:                                       ; preds = %land.lhs.true174
+  %97 = load %struct.darray_t** %phone.addr, align 8
+  %call177 = call i8* @darray_find(%struct.darray_t* %97, i32 0)
+  %98 = load %struct.darray_t** %phone.addr, align 8
+  %items178 = getelementptr inbounds %struct.darray_t* %98, i32 0, i32 1
+  %99 = load i32* %items178, align 4
+  %100 = load i32* @verbose, align 4
+  call void @say_phones(i8* %call177, i32 %99, i32 %100)
+  %101 = load %struct.darray_t** %phone.addr, align 8
+  %items179 = getelementptr inbounds %struct.darray_t* %101, i32 0, i32 1
+  store i32 0, i32* %items179, align 4
+  br label %if.end180
+
+if.end180:                                        ; preds = %if.then176, %land.lhs.true174, %lor.lhs.false169
+  %102 = load i8** %s, align 8
+  %incdec.ptr181 = getelementptr inbounds i8* %102, i32 1
+  store i8* %incdec.ptr181, i8** %s, align 8
+  %103 = load %struct.darray_t** %phone.addr, align 8
+  %call182 = call i32 @phone_append(%struct.darray_t* %103, i32 32)
+  br label %sw.epilog
+
+sw.bb183:                                         ; preds = %if.then165, %if.then165, %if.then165, %if.then165, %if.then165, %if.then165, %if.then165
+  %104 = load i8** %s, align 8
+  %incdec.ptr184 = getelementptr inbounds i8* %104, i32 1
+  store i8* %incdec.ptr184, i8** %s, align 8
+  %105 = load %struct.darray_t** %phone.addr, align 8
+  %call185 = call i32 @phone_append(%struct.darray_t* %105, i32 32)
+  br label %sw.epilog
+
+sw.bb186:                                         ; preds = %if.then165
+  %106 = load i8** %s, align 8
+  %call187 = call i8* @strchr(i8* %106, i32 93)
+  store i8* %call187, i8** %e, align 8
+  %107 = load i8** %e, align 8
+  %tobool188 = icmp ne i8* %107, null
+  br i1 %tobool188, label %if.then189, label %if.end199
+
+if.then189:                                       ; preds = %sw.bb186
+  %108 = load i8** %s, align 8
+  %incdec.ptr190 = getelementptr inbounds i8* %108, i32 1
+  store i8* %incdec.ptr190, i8** %s, align 8
+  br label %while.cond191
+
+while.cond191:                                    ; preds = %while.body194, %if.then189
+  %109 = load i8** %s, align 8
+  %110 = load i8** %e, align 8
+  %cmp192 = icmp ult i8* %109, %110
+  br i1 %cmp192, label %while.body194, label %while.end198
+
+while.body194:                                    ; preds = %while.cond191
+  %111 = load %struct.darray_t** %phone.addr, align 8
+  %112 = load i8** %s, align 8
+  %incdec.ptr195 = getelementptr inbounds i8* %112, i32 1
+  store i8* %incdec.ptr195, i8** %s, align 8
+  %113 = load i8* %112, align 1
+  %conv196 = sext i8 %113 to i32
+  %call197 = call i32 @phone_append(%struct.darray_t* %111, i32 %conv196)
+  br label %while.cond191
+
+while.end198:                                     ; preds = %while.cond191
+  %114 = load i8** %e, align 8
+  %add.ptr = getelementptr inbounds i8* %114, i64 1
+  store i8* %add.ptr, i8** %s, align 8
+  br label %sw.epilog
+
+if.end199:                                        ; preds = %sw.bb186
+  br label %sw.default
+
+sw.default:                                       ; preds = %if.then165, %if.end199
+  %115 = load i8** %word, align 8
+  %116 = load %struct.darray_t** %phone.addr, align 8
+  %call200 = call i32 @spell_out(i8* %115, i32 1, %struct.darray_t* %116)
+  %117 = load i32* %nph, align 4
+  %add201 = add i32 %117, %call200
+  store i32 %add201, i32* %nph, align 4
+  %118 = load i8** %s, align 8
+  %incdec.ptr202 = getelementptr inbounds i8* %118, i32 1
+  store i8* %incdec.ptr202, i8** %s, align 8
+  br label %sw.epilog
+
+sw.epilog:                                        ; preds = %sw.default, %while.end198, %sw.bb183, %if.end180
+  br label %if.end222
+
+if.else203:                                       ; preds = %if.else161
+  br label %while.cond204
+
+while.cond204:                                    ; preds = %while.body213, %if.else203
+  %119 = load i8** %s, align 8
+  %120 = load i8* %119, align 1
+  store i8 %120, i8* %ch, align 1
+  %conv205 = sext i8 %120 to i32
+  %tobool206 = icmp ne i32 %conv205, 0
+  br i1 %tobool206, label %land.rhs207, label %land.end212
+
+land.rhs207:                                      ; preds = %while.cond204
+  %121 = load i8* %ch, align 1
+  %conv208 = sext i8 %121 to i32
+  %call209 = call i32 @isspace(i32 %conv208)
+  %tobool210 = icmp ne i32 %call209, 0
+  %lnot211 = xor i1 %tobool210, true
+  br label %land.end212
+
+land.end212:                                      ; preds = %land.rhs207, %while.cond204
+  %122 = phi i1 [ false, %while.cond204 ], [ %lnot211, %land.rhs207 ]
+  br i1 %122, label %while.body213, label %while.end215
+
+while.body213:                                    ; preds = %land.end212
+  %123 = load i8** %s, align 8
+  %incdec.ptr214 = getelementptr inbounds i8* %123, i32 1
+  store i8* %incdec.ptr214, i8** %s, align 8
+  br label %while.cond204
+
+while.end215:                                     ; preds = %land.end212
+  %124 = load i8** %word, align 8
+  %125 = load i8** %s, align 8
+  %126 = load i8** %word, align 8
+  %sub.ptr.lhs.cast216 = ptrtoint i8* %125 to i64
+  %sub.ptr.rhs.cast217 = ptrtoint i8* %126 to i64
+  %sub.ptr.sub218 = sub i64 %sub.ptr.lhs.cast216, %sub.ptr.rhs.cast217
+  %conv219 = trunc i64 %sub.ptr.sub218 to i32
+  %127 = load %struct.darray_t** %phone.addr, align 8
+  %call220 = call i32 @spell_out(i8* %124, i32 %conv219, %struct.darray_t* %127)
+  %128 = load i32* %nph, align 4
+  %add221 = add i32 %128, %call220
+  store i32 %add221, i32* %nph, align 4
+  br label %if.end222
+
+if.end222:                                        ; preds = %while.end215, %sw.epilog
+  br label %if.end223
+
+if.end223:                                        ; preds = %if.end222, %while.end154
+  br label %if.end224
+
+if.end224:                                        ; preds = %if.end223, %if.end134
+  br label %if.end225
+
+if.end225:                                        ; preds = %if.end224, %if.end
+  br label %while.cond226
+
+while.cond226:                                    ; preds = %while.body230, %if.end225
+  %129 = load i8** %s, align 8
+  %130 = load i8* %129, align 1
+  store i8 %130, i8* %ch, align 1
+  %conv227 = sext i8 %130 to i32
+  %call228 = call i32 @isspace(i32 %conv227)
+  %tobool229 = icmp ne i32 %call228, 0
+  br i1 %tobool229, label %while.body230, label %while.end232
+
+while.body230:                                    ; preds = %while.cond226
+  %131 = load i8** %s, align 8
+  %incdec.ptr231 = getelementptr inbounds i8* %131, i32 1
+  store i8* %incdec.ptr231, i8** %s, align 8
+  br label %while.cond226
+
+while.end232:                                     ; preds = %while.cond226
+  br label %while.cond1
+
+while.end233:                                     ; preds = %while.cond1
+  %132 = load i32* %nph, align 4
+  ret i32 %132
+}
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @suspect_word(i8* %s, i32 %n) #0 {
+entry:
+  %s.addr = alloca i8*, align 8
+  %n.addr = alloca i32, align 4
+  %i = alloca i32, align 4
+  %seen_lower = alloca i32, align 4
+  %seen_upper = alloca i32, align 4
+  %seen_vowel = alloca i32, align 4
+  %last = alloca i32, align 4
+  %ch = alloca i8, align 1
+  store i8* %s, i8** %s.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  store i32 0, i32* %i, align 4
+  store i32 0, i32* %seen_lower, align 4
+  store i32 0, i32* %seen_upper, align 4
+  store i32 0, i32* %seen_vowel, align 4
+  store i32 0, i32* %last, align 4
+  store i32 0, i32* %i, align 4
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %entry
+  %0 = load i32* %i, align 4
+  %1 = load i32* %n.addr, align 4
+  %cmp = icmp slt i32 %0, %1
+  br i1 %cmp, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.cond
+  %2 = load i8** %s.addr, align 8
+  %incdec.ptr = getelementptr inbounds i8* %2, i32 1
+  store i8* %incdec.ptr, i8** %s.addr, align 8
+  %3 = load i8* %2, align 1
+  store i8 %3, i8* %ch, align 1
+  %4 = load i32* %i, align 4
+  %tobool = icmp ne i32 %4, 0
+  br i1 %tobool, label %land.lhs.true, label %if.end
+
+land.lhs.true:                                    ; preds = %for.body
+  %5 = load i32* %last, align 4
+  %cmp1 = icmp ne i32 %5, 45
+  br i1 %cmp1, label %land.lhs.true2, label %if.end
+
+land.lhs.true2:                                   ; preds = %land.lhs.true
+  %6 = load i8* %ch, align 1
+  %conv = sext i8 %6 to i32
+  %call = call i32 @isupper(i32 %conv)
+  %tobool3 = icmp ne i32 %call, 0
+  br i1 %tobool3, label %if.then, label %if.end
+
+if.then:                                          ; preds = %land.lhs.true2
+  store i32 1, i32* %seen_upper, align 4
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %land.lhs.true2, %land.lhs.true, %for.body
+  %7 = load i8* %ch, align 1
+  %conv4 = sext i8 %7 to i32
+  %call5 = call i32 @islower(i32 %conv4)
+  %tobool6 = icmp ne i32 %call5, 0
+  br i1 %tobool6, label %if.then7, label %if.end11
+
+if.then7:                                         ; preds = %if.end
+  store i32 1, i32* %seen_lower, align 4
+  %8 = load i8* %ch, align 1
+  %conv8 = sext i8 %8 to i32
+  %call9 = call i32 @toupper(i32 %conv8)
+  %conv10 = trunc i32 %call9 to i8
+  store i8 %conv10, i8* %ch, align 1
+  br label %if.end11
+
+if.end11:                                         ; preds = %if.then7, %if.end
+  %9 = load i8* %ch, align 1
+  %conv12 = sext i8 %9 to i32
+  %cmp13 = icmp eq i32 %conv12, 65
+  br i1 %cmp13, label %if.then34, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %if.end11
+  %10 = load i8* %ch, align 1
+  %conv15 = sext i8 %10 to i32
+  %cmp16 = icmp eq i32 %conv15, 69
+  br i1 %cmp16, label %if.then34, label %lor.lhs.false18
+
+lor.lhs.false18:                                  ; preds = %lor.lhs.false
+  %11 = load i8* %ch, align 1
+  %conv19 = sext i8 %11 to i32
+  %cmp20 = icmp eq i32 %conv19, 73
+  br i1 %cmp20, label %if.then34, label %lor.lhs.false22
+
+lor.lhs.false22:                                  ; preds = %lor.lhs.false18
+  %12 = load i8* %ch, align 1
+  %conv23 = sext i8 %12 to i32
+  %cmp24 = icmp eq i32 %conv23, 79
+  br i1 %cmp24, label %if.then34, label %lor.lhs.false26
+
+lor.lhs.false26:                                  ; preds = %lor.lhs.false22
+  %13 = load i8* %ch, align 1
+  %conv27 = sext i8 %13 to i32
+  %cmp28 = icmp eq i32 %conv27, 85
+  br i1 %cmp28, label %if.then34, label %lor.lhs.false30
+
+lor.lhs.false30:                                  ; preds = %lor.lhs.false26
+  %14 = load i8* %ch, align 1
+  %conv31 = sext i8 %14 to i32
+  %cmp32 = icmp eq i32 %conv31, 89
+  br i1 %cmp32, label %if.then34, label %if.end35
+
+if.then34:                                        ; preds = %lor.lhs.false30, %lor.lhs.false26, %lor.lhs.false22, %lor.lhs.false18, %lor.lhs.false, %if.end11
+  store i32 1, i32* %seen_vowel, align 4
+  br label %if.end35
+
+if.end35:                                         ; preds = %if.then34, %lor.lhs.false30
+  %15 = load i8* %ch, align 1
+  %conv36 = sext i8 %15 to i32
+  store i32 %conv36, i32* %last, align 4
+  br label %for.inc
+
+for.inc:                                          ; preds = %if.end35
+  %16 = load i32* %i, align 4
+  %inc = add nsw i32 %16, 1
+  store i32 %inc, i32* %i, align 4
+  br label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  %17 = load i32* %seen_vowel, align 4
+  %tobool37 = icmp ne i32 %17, 0
+  br i1 %tobool37, label %lor.lhs.false38, label %lor.end
+
+lor.lhs.false38:                                  ; preds = %for.end
+  %18 = load i32* %seen_upper, align 4
+  %tobool39 = icmp ne i32 %18, 0
+  br i1 %tobool39, label %land.lhs.true40, label %lor.rhs
+
+land.lhs.true40:                                  ; preds = %lor.lhs.false38
+  %19 = load i32* %seen_lower, align 4
+  %tobool41 = icmp ne i32 %19, 0
+  br i1 %tobool41, label %lor.end, label %lor.rhs
+
+lor.rhs:                                          ; preds = %land.lhs.true40, %lor.lhs.false38
+  %20 = load i32* %seen_lower, align 4
+  %tobool42 = icmp ne i32 %20, 0
+  %lnot = xor i1 %tobool42, true
+  br label %lor.end
+
+lor.end:                                          ; preds = %lor.rhs, %land.lhs.true40, %for.end
+  %21 = phi i1 [ true, %land.lhs.true40 ], [ true, %for.end ], [ %lnot, %lor.rhs ]
+  %lor.ext = zext i1 %21 to i32
+  ret i32 %lor.ext
+}
+
+declare i32 @isupper(i32) #1
+
+declare i32 @islower(i32) #1
+
+declare i32 @toupper(i32) #1
+
+; Function Attrs: nounwind ssp uwtable
+define void @say_phones(i8* %phone, i32 %len, i32 %verbose) #0 {
+entry:
+  %phone.addr = alloca i8*, align 8
+  %len.addr = alloca i32, align 4
+  %verbose.addr = alloca i32, align 4
+  %elm = alloca %struct.darray_t, align 8
+  %frames = alloca i32, align 4
+  %max_samples = alloca i32, align 4
+  %samp = alloca i16*, align 8
+  %nsamp = alloca i32, align 4
+  store i8* %phone, i8** %phone.addr, align 8
+  store i32 %len, i32* %len.addr, align 4
+  store i32 %verbose, i32* %verbose.addr, align 4
+  %0 = load i32* %len.addr, align 4
+  call void @darray_init(%struct.darray_t* %elm, i32 1, i32 %0)
+  %1 = load i8** %phone.addr, align 8
+  %2 = load i32* %len.addr, align 4
+  %call = call i32 @phone_to_elm(i8* %1, i32 %2, %struct.darray_t* %elm)
+  store i32 %call, i32* %frames, align 4
+  %tobool = icmp ne i32 %call, 0
+  br i1 %tobool, label %if.then, label %if.end16
+
+if.then:                                          ; preds = %entry
+  %3 = load i32* %frames, align 4
+  %conv = zext i32 %3 to i64
+  %4 = load i64* getelementptr inbounds (%struct.klatt_global_t* @klatt_global, i32 0, i32 7), align 8
+  %mul = mul nsw i64 %conv, %4
+  %conv1 = trunc i64 %mul to i32
+  store i32 %conv1, i32* %max_samples, align 4
+  %5 = load i32* %max_samples, align 4
+  %conv2 = zext i32 %5 to i64
+  %mul3 = mul i64 2, %conv2
+  %call4 = call i8* @malloc(i64 %mul3)
+  %6 = bitcast i8* %call4 to i16*
+  store i16* %6, i16** %samp, align 8
+  %7 = load i32* %verbose.addr, align 4
+  %tobool5 = icmp ne i32 %7, 0
+  br i1 %tobool5, label %if.then6, label %if.end
+
+if.then6:                                         ; preds = %if.then
+  %8 = load %struct.__sFILE** @__stderrp, align 8
+  %9 = load i32* %len.addr, align 4
+  %10 = load i8** %phone.addr, align 8
+  %call7 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %8, i8* getelementptr inbounds ([6 x i8]* @.str3, i32 0, i32 0), i32 %9, i8* %10)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then6, %if.then
+  %11 = load i16** %samp, align 8
+  %tobool8 = icmp ne i16* %11, null
+  br i1 %tobool8, label %if.then9, label %if.end15
+
+if.then9:                                         ; preds = %if.end
+  %items = getelementptr inbounds %struct.darray_t* %elm, i32 0, i32 1
+  %12 = load i32* %items, align 4
+  %call10 = call i8* @darray_find(%struct.darray_t* %elm, i32 0)
+  %13 = load i32* %max_samples, align 4
+  %14 = load i16** %samp, align 8
+  %call11 = call i32 @holmes(i32 %12, i8* %call10, i32 %13, i16* %14)
+  store i32 %call11, i32* %nsamp, align 4
+  %15 = load i32* %nsamp, align 4
+  %16 = load i16** %samp, align 8
+  call void @audio_play(i32 %15, i16* %16)
+  %17 = load void (i32, i16*)** @file_write, align 8
+  %tobool12 = icmp ne void (i32, i16*)* %17, null
+  br i1 %tobool12, label %if.then13, label %if.end14
+
+if.then13:                                        ; preds = %if.then9
+  %18 = load void (i32, i16*)** @file_write, align 8
+  %19 = load i32* %nsamp, align 4
+  %20 = load i16** %samp, align 8
+  call void %18(i32 %19, i16* %20)
+  br label %if.end14
+
+if.end14:                                         ; preds = %if.then13, %if.then9
+  %21 = load i16** %samp, align 8
+  %22 = bitcast i16* %21 to i8*
+  call void @free(i8* %22)
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.end14, %if.end
+  br label %if.end16
+
+if.end16:                                         ; preds = %if.end15, %entry
+  call void @darray_free(%struct.darray_t* %elm)
+  ret void
+}
+
+; Function Attrs: inlinehint nounwind ssp uwtable
+define internal void @darray_init(%struct.darray_t* %a, i32 %size, i32 %get) #2 {
+entry:
+  %a.addr = alloca %struct.darray_t*, align 8
+  %size.addr = alloca i32, align 4
+  %get.addr = alloca i32, align 4
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  store i32 %size, i32* %size.addr, align 4
+  store i32 %get, i32* %get.addr, align 4
+  %0 = load i32* %size.addr, align 4
+  %conv = trunc i32 %0 to i16
+  %1 = load %struct.darray_t** %a.addr, align 8
+  %esize = getelementptr inbounds %struct.darray_t* %1, i32 0, i32 3
+  store i16 %conv, i16* %esize, align 2
+  %2 = load i32* %get.addr, align 4
+  %conv1 = trunc i32 %2 to i16
+  %3 = load %struct.darray_t** %a.addr, align 8
+  %get2 = getelementptr inbounds %struct.darray_t* %3, i32 0, i32 4
+  store i16 %conv1, i16* %get2, align 2
+  %4 = load %struct.darray_t** %a.addr, align 8
+  %alloc = getelementptr inbounds %struct.darray_t* %4, i32 0, i32 2
+  store i32 0, i32* %alloc, align 4
+  %5 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %5, i32 0, i32 1
+  store i32 0, i32* %items, align 4
+  %6 = load %struct.darray_t** %a.addr, align 8
+  %data = getelementptr inbounds %struct.darray_t* %6, i32 0, i32 0
+  store i8* null, i8** %data, align 8
+  ret void
+}
+
+declare i32 @phone_to_elm(i8*, i32, %struct.darray_t*) #1
+
+declare i8* @malloc(i64) #1
+
+declare i32 @holmes(i32, i8*, i32, i16*) #1
+
+; Function Attrs: inlinehint nounwind ssp uwtable
+define internal i8* @darray_find(%struct.darray_t* %a, i32 %n) #2 {
+entry:
+  %retval = alloca i8*, align 8
+  %a.addr = alloca %struct.darray_t*, align 8
+  %n.addr = alloca i32, align 4
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  %0 = load i32* %n.addr, align 4
+  %1 = load %struct.darray_t** %a.addr, align 8
+  %alloc = getelementptr inbounds %struct.darray_t* %1, i32 0, i32 2
+  %2 = load i32* %alloc, align 4
+  %cmp = icmp ult i32 %0, %2
+  br i1 %cmp, label %land.lhs.true, label %if.end
+
+land.lhs.true:                                    ; preds = %entry
+  %3 = load i32* %n.addr, align 4
+  %4 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %4, i32 0, i32 1
+  %5 = load i32* %items, align 4
+  %cmp1 = icmp ult i32 %3, %5
+  br i1 %cmp1, label %if.then, label %if.end
+
+if.then:                                          ; preds = %land.lhs.true
+  %6 = load %struct.darray_t** %a.addr, align 8
+  %data = getelementptr inbounds %struct.darray_t* %6, i32 0, i32 0
+  %7 = load i8** %data, align 8
+  %8 = load i32* %n.addr, align 4
+  %9 = load %struct.darray_t** %a.addr, align 8
+  %esize = getelementptr inbounds %struct.darray_t* %9, i32 0, i32 3
+  %10 = load i16* %esize, align 2
+  %conv = zext i16 %10 to i32
+  %mul = mul i32 %8, %conv
+  %idx.ext = zext i32 %mul to i64
+  %add.ptr = getelementptr inbounds i8* %7, i64 %idx.ext
+  store i8* %add.ptr, i8** %retval
+  br label %return
+
+if.end:                                           ; preds = %land.lhs.true, %entry
+  %11 = load %struct.darray_t** %a.addr, align 8
+  %12 = load i32* %n.addr, align 4
+  %call = call i8* @Darray_find(%struct.darray_t* %11, i32 %12)
+  store i8* %call, i8** %retval
+  br label %return
+
+return:                                           ; preds = %if.end, %if.then
+  %13 = load i8** %retval
+  ret i8* %13
+}
+
+declare void @audio_play(i32, i16*) #1
+
+declare void @free(i8*) #1
+
+declare void @darray_free(%struct.darray_t*) #1
+
+declare i32 @isspace(i32) #1
+
+declare i32 @isalpha(i32) #1
+
+declare i32 @ispunct(i32) #1
+
+declare i32 @isdigit(i32) #1
+
+; Function Attrs: nounwind ssp uwtable
+define internal i32 @xlate_word(i8* %word, i32 %n, %struct.darray_t* %phone) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %word.addr = alloca i8*, align 8
+  %n.addr = alloca i32, align 4
+  %phone.addr = alloca %struct.darray_t*, align 8
+  %nph = alloca i32, align 4
+  %p = alloca i8*, align 8
+  %s = alloca i8*, align 8
+  %x = alloca i8*, align 8
+  %h = alloca i8*, align 8
+  store i8* %word, i8** %word.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  store %struct.darray_t* %phone, %struct.darray_t** %phone.addr, align 8
+  store i32 0, i32* %nph, align 4
+  %0 = load i8** %word.addr, align 8
+  %1 = load i8* %0, align 1
+  %conv = sext i8 %1 to i32
+  %cmp = icmp ne i32 %conv, 91
+  br i1 %cmp, label %if.then, label %if.else57
+
+if.then:                                          ; preds = %entry
+  %2 = load i8** @dict, align 8
+  %tobool = icmp ne i8* %2, null
+  br i1 %tobool, label %if.then2, label %if.end42
+
+if.then2:                                         ; preds = %if.then
+  %3 = load i8** %word.addr, align 8
+  %4 = load i32* %n.addr, align 4
+  %call = call i8* @dict_find(i8* %3, i32 %4)
+  store i8* %call, i8** %p, align 8
+  %5 = load i8** %p, align 8
+  %tobool3 = icmp ne i8* %5, null
+  br i1 %tobool3, label %if.then4, label %if.else
+
+if.then4:                                         ; preds = %if.then2
+  %6 = load i8** %p, align 8
+  store i8* %6, i8** %s, align 8
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.end, %if.then4
+  %7 = load i8** %s, align 8
+  %8 = load i8* %7, align 1
+  %tobool5 = icmp ne i8 %8, 0
+  br i1 %tobool5, label %while.body, label %while.end13
+
+while.body:                                       ; preds = %while.cond
+  %9 = load i8** %s, align 8
+  %incdec.ptr = getelementptr inbounds i8* %9, i32 1
+  store i8* %incdec.ptr, i8** %s, align 8
+  %10 = load i8* %9, align 1
+  %conv6 = zext i8 %10 to i32
+  %idxprom = zext i32 %conv6 to i64
+  %11 = load i8*** @dialect, align 8
+  %arrayidx = getelementptr inbounds i8** %11, i64 %idxprom
+  %12 = load i8** %arrayidx, align 8
+  store i8* %12, i8** %x, align 8
+  br label %while.cond7
+
+while.cond7:                                      ; preds = %while.body9, %while.body
+  %13 = load i8** %x, align 8
+  %14 = load i8* %13, align 1
+  %tobool8 = icmp ne i8 %14, 0
+  br i1 %tobool8, label %while.body9, label %while.end
+
+while.body9:                                      ; preds = %while.cond7
+  %15 = load %struct.darray_t** %phone.addr, align 8
+  %16 = load i8** %x, align 8
+  %incdec.ptr10 = getelementptr inbounds i8* %16, i32 1
+  store i8* %incdec.ptr10, i8** %x, align 8
+  %17 = load i8* %16, align 1
+  %conv11 = sext i8 %17 to i32
+  %call12 = call i32 @phone_append(%struct.darray_t* %15, i32 %conv11)
+  %18 = load i32* %nph, align 4
+  %inc = add i32 %18, 1
+  store i32 %inc, i32* %nph, align 4
+  br label %while.cond7
+
+while.end:                                        ; preds = %while.cond7
+  br label %while.cond
+
+while.end13:                                      ; preds = %while.cond
+  %19 = load %struct.darray_t** %phone.addr, align 8
+  %call14 = call i32 @phone_append(%struct.darray_t* %19, i32 32)
+  %20 = load i8** %p, align 8
+  call void @free(i8* %20)
+  %21 = load i32* %nph, align 4
+  %add = add i32 %21, 1
+  store i32 %add, i32* %retval
+  br label %return
+
+if.else:                                          ; preds = %if.then2
+  %22 = load i8** %word.addr, align 8
+  store i8* %22, i8** %h, align 8
+  br label %while.cond15
+
+while.cond15:                                     ; preds = %if.end, %if.else
+  %23 = load i8** %h, align 8
+  %24 = load i8** %word.addr, align 8
+  %25 = load i32* %n.addr, align 4
+  %idx.ext = sext i32 %25 to i64
+  %add.ptr = getelementptr inbounds i8* %24, i64 %idx.ext
+  %cmp16 = icmp ult i8* %23, %add.ptr
+  br i1 %cmp16, label %while.body18, label %while.end40
+
+while.body18:                                     ; preds = %while.cond15
+  %26 = load i8** %h, align 8
+  %27 = load i8* %26, align 1
+  %conv19 = sext i8 %27 to i32
+  %cmp20 = icmp eq i32 %conv19, 46
+  br i1 %cmp20, label %if.then25, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %while.body18
+  %28 = load i8** %h, align 8
+  %29 = load i8* %28, align 1
+  %conv22 = sext i8 %29 to i32
+  %cmp23 = icmp eq i32 %conv22, 45
+  br i1 %cmp23, label %if.then25, label %if.else38
+
+if.then25:                                        ; preds = %lor.lhs.false, %while.body18
+  %30 = load i8** %word.addr, align 8
+  %31 = load i8** %h, align 8
+  %incdec.ptr26 = getelementptr inbounds i8* %31, i32 1
+  store i8* %incdec.ptr26, i8** %h, align 8
+  %32 = load i8** %word.addr, align 8
+  %sub.ptr.lhs.cast = ptrtoint i8* %31 to i64
+  %sub.ptr.rhs.cast = ptrtoint i8* %32 to i64
+  %sub.ptr.sub = sub i64 %sub.ptr.lhs.cast, %sub.ptr.rhs.cast
+  %conv27 = trunc i64 %sub.ptr.sub to i32
+  %33 = load %struct.darray_t** %phone.addr, align 8
+  %call28 = call i32 @xlate_word(i8* %30, i32 %conv27, %struct.darray_t* %33)
+  %34 = load i32* %nph, align 4
+  %add29 = add i32 %34, %call28
+  store i32 %add29, i32* %nph, align 4
+  %35 = load i8** %h, align 8
+  %36 = load i8** %word.addr, align 8
+  %37 = load i32* %n.addr, align 4
+  %idx.ext30 = sext i32 %37 to i64
+  %add.ptr31 = getelementptr inbounds i8* %36, i64 %idx.ext30
+  %38 = load i8** %h, align 8
+  %sub.ptr.lhs.cast32 = ptrtoint i8* %add.ptr31 to i64
+  %sub.ptr.rhs.cast33 = ptrtoint i8* %38 to i64
+  %sub.ptr.sub34 = sub i64 %sub.ptr.lhs.cast32, %sub.ptr.rhs.cast33
+  %conv35 = trunc i64 %sub.ptr.sub34 to i32
+  %39 = load %struct.darray_t** %phone.addr, align 8
+  %call36 = call i32 @xlate_word(i8* %35, i32 %conv35, %struct.darray_t* %39)
+  %40 = load i32* %nph, align 4
+  %add37 = add i32 %40, %call36
+  store i32 %add37, i32* %nph, align 4
+  %41 = load i32* %nph, align 4
+  store i32 %41, i32* %retval
+  br label %return
+
+if.else38:                                        ; preds = %lor.lhs.false
+  %42 = load i8** %h, align 8
+  %incdec.ptr39 = getelementptr inbounds i8* %42, i32 1
+  store i8* %incdec.ptr39, i8** %h, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.else38
+  br label %while.cond15
+
+while.end40:                                      ; preds = %while.cond15
+  br label %if.end41
+
+if.end41:                                         ; preds = %while.end40
+  br label %if.end42
+
+if.end42:                                         ; preds = %if.end41, %if.then
+  %43 = load i8** %word.addr, align 8
+  %44 = load i32* %n.addr, align 4
+  %call43 = call i32 @suspect_word(i8* %43, i32 %44)
+  %tobool44 = icmp ne i32 %call43, 0
+  br i1 %tobool44, label %if.then45, label %if.else47
+
+if.then45:                                        ; preds = %if.end42
+  %45 = load i8** %word.addr, align 8
+  %46 = load i32* %n.addr, align 4
+  %47 = load %struct.darray_t** %phone.addr, align 8
+  %call46 = call i32 @spell_out(i8* %45, i32 %46, %struct.darray_t* %47)
+  store i32 %call46, i32* %retval
+  br label %return
+
+if.else47:                                        ; preds = %if.end42
+  %48 = load i8** @dict, align 8
+  %tobool48 = icmp ne i8* %48, null
+  br i1 %tobool48, label %if.then51, label %lor.lhs.false49
+
+lor.lhs.false49:                                  ; preds = %if.else47
+  %49 = load i32* @verbose, align 4
+  %tobool50 = icmp ne i32 %49, 0
+  br i1 %tobool50, label %if.then51, label %if.end53
+
+if.then51:                                        ; preds = %lor.lhs.false49, %if.else47
+  %50 = load %struct.__sFILE** @__stderrp, align 8
+  %51 = load i8** @dict, align 8
+  %52 = load i32* %n.addr, align 4
+  %53 = load i8** %word.addr, align 8
+  %call52 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %50, i8* getelementptr inbounds ([17 x i8]* @.str11, i32 0, i32 0), i8* %51, i32 %52, i8* %53)
+  br label %if.end53
+
+if.end53:                                         ; preds = %if.then51, %lor.lhs.false49
+  %54 = load i8** %word.addr, align 8
+  %55 = load i32* %n.addr, align 4
+  %56 = load %struct.darray_t** %phone.addr, align 8
+  %call54 = call i32 @NRL(i8* %54, i32 %55, %struct.darray_t* %56)
+  %57 = load i32* %nph, align 4
+  %add55 = add i32 %57, %call54
+  store i32 %add55, i32* %nph, align 4
+  br label %if.end56
+
+if.end56:                                         ; preds = %if.end53
+  br label %if.end77
+
+if.else57:                                        ; preds = %entry
+  %58 = load i32* %n.addr, align 4
+  %dec = add nsw i32 %58, -1
+  store i32 %dec, i32* %n.addr, align 4
+  %sub = sub nsw i32 %dec, 1
+  %idxprom58 = sext i32 %sub to i64
+  %59 = load i8** %word.addr, align 8
+  %incdec.ptr59 = getelementptr inbounds i8* %59, i32 1
+  store i8* %incdec.ptr59, i8** %word.addr, align 8
+  %arrayidx60 = getelementptr inbounds i8* %incdec.ptr59, i64 %idxprom58
+  %60 = load i8* %arrayidx60, align 1
+  %conv61 = sext i8 %60 to i32
+  %cmp62 = icmp eq i32 %conv61, 93
+  br i1 %cmp62, label %if.then64, label %if.end66
+
+if.then64:                                        ; preds = %if.else57
+  %61 = load i32* %n.addr, align 4
+  %dec65 = add nsw i32 %61, -1
+  store i32 %dec65, i32* %n.addr, align 4
+  br label %if.end66
+
+if.end66:                                         ; preds = %if.then64, %if.else57
+  br label %while.cond67
+
+while.cond67:                                     ; preds = %while.body71, %if.end66
+  %62 = load i32* %n.addr, align 4
+  %dec68 = add nsw i32 %62, -1
+  store i32 %dec68, i32* %n.addr, align 4
+  %cmp69 = icmp sgt i32 %62, 0
+  br i1 %cmp69, label %while.body71, label %while.end76
+
+while.body71:                                     ; preds = %while.cond67
+  %63 = load %struct.darray_t** %phone.addr, align 8
+  %64 = load i8** %word.addr, align 8
+  %incdec.ptr72 = getelementptr inbounds i8* %64, i32 1
+  store i8* %incdec.ptr72, i8** %word.addr, align 8
+  %65 = load i8* %64, align 1
+  %conv73 = sext i8 %65 to i32
+  %call74 = call i32 @phone_append(%struct.darray_t* %63, i32 %conv73)
+  %66 = load i32* %nph, align 4
+  %inc75 = add i32 %66, 1
+  store i32 %inc75, i32* %nph, align 4
+  br label %while.cond67
+
+while.end76:                                      ; preds = %while.cond67
+  br label %if.end77
+
+if.end77:                                         ; preds = %while.end76, %if.end56
+  %67 = load %struct.darray_t** %phone.addr, align 8
+  %call78 = call i32 @phone_append(%struct.darray_t* %67, i32 32)
+  %68 = load i32* %nph, align 4
+  %add79 = add i32 %68, 1
+  store i32 %add79, i32* %retval
+  br label %return
+
+return:                                           ; preds = %if.end77, %if.then45, %if.then25, %while.end13
+  %69 = load i32* %retval
+  ret i32 %69
+}
+
+declare i32 @xlate_cardinal(i64, %struct.darray_t*) #1
+
+declare i8* @strchr(i8*, i32) #1
+
+declare i32 @phone_append(%struct.darray_t*, i32) #1
+
+; Function Attrs: nounwind ssp uwtable
+define i8* @concat_args(i32 %argc, i8** %argv) #0 {
+entry:
+  %argc.addr = alloca i32, align 4
+  %argv.addr = alloca i8**, align 8
+  %len = alloca i32, align 4
+  %i = alloca i32, align 4
+  %buf = alloca i8*, align 8
+  %d = alloca i8*, align 8
+  %s = alloca i8*, align 8
+  store i32 %argc, i32* %argc.addr, align 4
+  store i8** %argv, i8*** %argv.addr, align 8
+  store i32 0, i32* %len, align 4
+  store i32 1, i32* %i, align 4
+  br label %for.cond
+
+for.cond:                                         ; preds = %for.inc, %entry
+  %0 = load i32* %i, align 4
+  %1 = load i32* %argc.addr, align 4
+  %cmp = icmp slt i32 %0, %1
+  br i1 %cmp, label %for.body, label %for.end
+
+for.body:                                         ; preds = %for.cond
+  %2 = load i32* %i, align 4
+  %idxprom = sext i32 %2 to i64
+  %3 = load i8*** %argv.addr, align 8
+  %arrayidx = getelementptr inbounds i8** %3, i64 %idxprom
+  %4 = load i8** %arrayidx, align 8
+  %call = call i64 @strlen(i8* %4)
+  %add = add i64 %call, 1
+  %5 = load i32* %len, align 4
+  %conv = sext i32 %5 to i64
+  %add1 = add i64 %conv, %add
+  %conv2 = trunc i64 %add1 to i32
+  store i32 %conv2, i32* %len, align 4
+  br label %for.inc
+
+for.inc:                                          ; preds = %for.body
+  %6 = load i32* %i, align 4
+  %inc = add nsw i32 %6, 1
+  store i32 %inc, i32* %i, align 4
+  br label %for.cond
+
+for.end:                                          ; preds = %for.cond
+  %7 = load i32* %len, align 4
+  %conv3 = sext i32 %7 to i64
+  %call4 = call i8* @malloc(i64 %conv3)
+  store i8* %call4, i8** %buf, align 8
+  %8 = load i8** %buf, align 8
+  %tobool = icmp ne i8* %8, null
+  br i1 %tobool, label %if.then, label %if.end19
+
+if.then:                                          ; preds = %for.end
+  %9 = load i8** %buf, align 8
+  store i8* %9, i8** %d, align 8
+  store i32 1, i32* %i, align 4
+  br label %for.cond5
+
+for.cond5:                                        ; preds = %if.end, %if.then
+  %10 = load i32* %i, align 4
+  %11 = load i32* %argc.addr, align 4
+  %cmp6 = icmp slt i32 %10, %11
+  br i1 %cmp6, label %for.body8, label %for.end18
+
+for.body8:                                        ; preds = %for.cond5
+  %12 = load i32* %i, align 4
+  %inc9 = add nsw i32 %12, 1
+  store i32 %inc9, i32* %i, align 4
+  %idxprom10 = sext i32 %12 to i64
+  %13 = load i8*** %argv.addr, align 8
+  %arrayidx11 = getelementptr inbounds i8** %13, i64 %idxprom10
+  %14 = load i8** %arrayidx11, align 8
+  store i8* %14, i8** %s, align 8
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %for.body8
+  %15 = load i8** %s, align 8
+  %16 = load i8* %15, align 1
+  %tobool12 = icmp ne i8 %16, 0
+  br i1 %tobool12, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %17 = load i8** %s, align 8
+  %incdec.ptr = getelementptr inbounds i8* %17, i32 1
+  store i8* %incdec.ptr, i8** %s, align 8
+  %18 = load i8* %17, align 1
+  %19 = load i8** %d, align 8
+  %incdec.ptr13 = getelementptr inbounds i8* %19, i32 1
+  store i8* %incdec.ptr13, i8** %d, align 8
+  store i8 %18, i8* %19, align 1
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %20 = load i32* %i, align 4
+  %21 = load i32* %argc.addr, align 4
+  %cmp14 = icmp slt i32 %20, %21
+  br i1 %cmp14, label %if.then16, label %if.else
+
+if.then16:                                        ; preds = %while.end
+  %22 = load i8** %d, align 8
+  %incdec.ptr17 = getelementptr inbounds i8* %22, i32 1
+  store i8* %incdec.ptr17, i8** %d, align 8
+  store i8 32, i8* %22, align 1
+  br label %if.end
+
+if.else:                                          ; preds = %while.end
+  %23 = load i8** %d, align 8
+  store i8 0, i8* %23, align 1
+  br label %if.end
+
+if.end:                                           ; preds = %if.else, %if.then16
+  br label %for.cond5
+
+for.end18:                                        ; preds = %for.cond5
+  br label %if.end19
+
+if.end19:                                         ; preds = %for.end18, %for.end
+  %24 = load i8** %buf, align 8
+  ret i8* %24
+}
+
+declare i64 @strlen(i8*) #1
+
+; Function Attrs: nounwind ssp uwtable
+define void @say_string(i8* %s) #0 {
+entry:
+  %s.addr = alloca i8*, align 8
+  %phone = alloca %struct.darray_t, align 8
+  store i8* %s, i8** %s.addr, align 8
+  call void @darray_init(%struct.darray_t* %phone, i32 1, i32 128)
+  %0 = load i8** %s.addr, align 8
+  %call = call i32 @xlate_string(i8* %0, %struct.darray_t* %phone)
+  %items = getelementptr inbounds %struct.darray_t* %phone, i32 0, i32 1
+  %1 = load i32* %items, align 4
+  %tobool = icmp ne i32 %1, 0
+  br i1 %tobool, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %call1 = call i8* @darray_find(%struct.darray_t* %phone, i32 0)
+  %items2 = getelementptr inbounds %struct.darray_t* %phone, i32 0, i32 1
+  %2 = load i32* %items2, align 4
+  %3 = load i32* @verbose, align 4
+  call void @say_phones(i8* %call1, i32 %2, i32 %3)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  call void @darray_free(%struct.darray_t* %phone)
+  ret void
+}
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @darray_fget(%struct.__sFILE* %f, %struct.darray_t* %p) #0 {
+entry:
+  %f.addr = alloca %struct.__sFILE*, align 8
+  %p.addr = alloca %struct.darray_t*, align 8
+  %ch = alloca i32, align 4
+  store %struct.__sFILE* %f, %struct.__sFILE** %f.addr, align 8
+  store %struct.darray_t* %p, %struct.darray_t** %p.addr, align 8
+  br label %while.cond
+
+while.cond:                                       ; preds = %if.end, %entry
+  %0 = load %struct.__sFILE** %f.addr, align 8
+  %call = call i32 @fgetc(%struct.__sFILE* %0)
+  store i32 %call, i32* %ch, align 4
+  %cmp = icmp ne i32 %call, -1
+  br i1 %cmp, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %1 = load %struct.darray_t** %p.addr, align 8
+  %2 = load i32* %ch, align 4
+  %call1 = call i32 @phone_append(%struct.darray_t* %1, i32 %2)
+  %3 = load i32* %ch, align 4
+  %cmp2 = icmp eq i32 %3, 10
+  br i1 %cmp2, label %if.then, label %if.end
+
+if.then:                                          ; preds = %while.body
+  br label %while.end
+
+if.end:                                           ; preds = %while.body
+  br label %while.cond
+
+while.end:                                        ; preds = %if.then, %while.cond
+  %4 = load %struct.darray_t** %p.addr, align 8
+  %call3 = call i32 @phone_append(%struct.darray_t* %4, i32 0)
+  %5 = load %struct.darray_t** %p.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %5, i32 0, i32 1
+  %6 = load i32* %items, align 4
+  %sub = sub i32 %6, 1
+  ret i32 %sub
+}
+
+declare i32 @fgetc(%struct.__sFILE*) #1
+
+; Function Attrs: nounwind ssp uwtable
+define void @say_file(%struct.__sFILE* %f) #0 {
+entry:
+  %f.addr = alloca %struct.__sFILE*, align 8
+  %line = alloca %struct.darray_t, align 8
+  %phone = alloca %struct.darray_t, align 8
+  store %struct.__sFILE* %f, %struct.__sFILE** %f.addr, align 8
+  call void @darray_init(%struct.darray_t* %line, i32 1, i32 128)
+  call void @darray_init(%struct.darray_t* %phone, i32 1, i32 128)
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %entry
+  %0 = load %struct.__sFILE** %f.addr, align 8
+  %call = call i32 @darray_fget(%struct.__sFILE* %0, %struct.darray_t* %line)
+  %tobool = icmp ne i32 %call, 0
+  br i1 %tobool, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %call1 = call i8* @darray_find(%struct.darray_t* %line, i32 0)
+  %call2 = call i32 @xlate_string(i8* %call1, %struct.darray_t* %phone)
+  %items = getelementptr inbounds %struct.darray_t* %line, i32 0, i32 1
+  store i32 0, i32* %items, align 4
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %items3 = getelementptr inbounds %struct.darray_t* %phone, i32 0, i32 1
+  %1 = load i32* %items3, align 4
+  %tobool4 = icmp ne i32 %1, 0
+  br i1 %tobool4, label %if.then, label %if.end
+
+if.then:                                          ; preds = %while.end
+  %call5 = call i8* @darray_find(%struct.darray_t* %phone, i32 0)
+  %items6 = getelementptr inbounds %struct.darray_t* %phone, i32 0, i32 1
+  %2 = load i32* %items6, align 4
+  %3 = load i32* @verbose, align 4
+  call void @say_phones(i8* %call5, i32 %2, i32 %3)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %while.end
+  call void @darray_free(%struct.darray_t* %phone)
+  call void @darray_free(%struct.darray_t* %line)
+  ret void
+}
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @main(i32 %argc, i8** %argv, i8** %env) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %argc.addr = alloca i32, align 4
+  %argv.addr = alloca i8**, align 8
+  %env.addr = alloca i8**, align 8
+  %s = alloca i8*, align 8
+  store i32 0, i32* %retval
+  store i32 %argc, i32* %argc.addr, align 4
+  store i8** %argv, i8*** %argv.addr, align 8
+  store i8** %env, i8*** %env.addr, align 8
+  %0 = load i8*** %argv.addr, align 8
+  %arrayidx = getelementptr inbounds i8** %0, i64 0
+  %1 = load i8** %arrayidx, align 8
+  store i8* %1, i8** @program, align 8
+  %2 = load i32* %argc.addr, align 4
+  %3 = load i8*** %argv.addr, align 8
+  %call = call i32 @audio_init(i32 %2, i8** %3)
+  store i32 %call, i32* %argc.addr, align 4
+  %4 = load i32* %argc.addr, align 4
+  %5 = load i8*** %argv.addr, align 8
+  %call1 = call i32 @init_synth(i32 %4, i8** %5)
+  store i32 %call1, i32* %argc.addr, align 4
+  %6 = load i32* %argc.addr, align 4
+  %7 = load i8*** %argv.addr, align 8
+  %call2 = call i32 @init_holmes(i32 %6, i8** %7)
+  store i32 %call2, i32* %argc.addr, align 4
+  %8 = load i32* %argc.addr, align 4
+  %9 = load i8*** %argv.addr, align 8
+  %call3 = call i32 @dict_init(i32 %8, i8** %9)
+  store i32 %call3, i32* %argc.addr, align 4
+  %10 = load i32* %argc.addr, align 4
+  %11 = load i8*** %argv.addr, align 8
+  %call4 = call i32 @file_init(i32 %10, i8** %11)
+  store i32 %call4, i32* %argc.addr, align 4
+  %12 = load i32* %argc.addr, align 4
+  %13 = load i8*** %argv.addr, align 8
+  %call5 = call i32 (i8*, i32, i8**, ...)* @getargs(i8* getelementptr inbounds ([5 x i8]* @.str5, i32 0, i32 0), i32 %12, i8** %13, i8* getelementptr inbounds ([2 x i8]* @.str6, i32 0, i32 0), i8* null, i32* @verbose, i8* getelementptr inbounds ([28 x i8]* @.str7, i32 0, i32 0), i8* null)
+  store i32 %call5, i32* %argc.addr, align 4
+  %14 = load i32* @help_only, align 4
+  %tobool = icmp ne i32 %14, 0
+  br i1 %tobool, label %if.then, label %if.else
+
+if.then:                                          ; preds = %entry
+  %15 = load %struct.__sFILE** @__stderrp, align 8
+  %16 = load i8** @program, align 8
+  %call6 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %15, i8* getelementptr inbounds ([43 x i8]* @.str8, i32 0, i32 0), i8* %16)
+  %17 = load %struct.__sFILE** @__stderrp, align 8
+  %18 = load i8** @program, align 8
+  %call7 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %17, i8* getelementptr inbounds ([44 x i8]* @.str9, i32 0, i32 0), i8* %18)
+  %19 = load %struct.__sFILE** @__stderrp, align 8
+  %20 = load i8** @Revision, align 8
+  %call8 = call i32 (%struct.__sFILE*, i8*, ...)* @fprintf(%struct.__sFILE* %19, i8* getelementptr inbounds ([6 x i8]* @.str10, i32 0, i32 0), i8* %20)
+  br label %if.end15
+
+if.else:                                          ; preds = %entry
+  %21 = load i32* %argc.addr, align 4
+  %cmp = icmp sgt i32 %21, 1
+  br i1 %cmp, label %if.then9, label %if.else13
+
+if.then9:                                         ; preds = %if.else
+  %22 = load i32* %argc.addr, align 4
+  %23 = load i8*** %argv.addr, align 8
+  %call10 = call i8* @concat_args(i32 %22, i8** %23)
+  store i8* %call10, i8** %s, align 8
+  %24 = load i8** %s, align 8
+  %tobool11 = icmp ne i8* %24, null
+  br i1 %tobool11, label %if.then12, label %if.end
+
+if.then12:                                        ; preds = %if.then9
+  %25 = load i8** %s, align 8
+  call void @say_string(i8* %25)
+  %26 = load i8** %s, align 8
+  call void @free(i8* %26)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then12, %if.then9
+  br label %if.end14
+
+if.else13:                                        ; preds = %if.else
+  %27 = load %struct.__sFILE** @__stdinp, align 8
+  call void @say_file(%struct.__sFILE* %27)
+  br label %if.end14
+
+if.end14:                                         ; preds = %if.else13, %if.end
+  br label %if.end15
+
+if.end15:                                         ; preds = %if.end14, %if.then
+  %28 = load void ()** @file_term, align 8
+  %tobool16 = icmp ne void ()* %28, null
+  br i1 %tobool16, label %if.then17, label %if.end18
+
+if.then17:                                        ; preds = %if.end15
+  %29 = load void ()** @file_term, align 8
+  call void %29()
+  br label %if.end18
+
+if.end18:                                         ; preds = %if.then17, %if.end15
+  call void @audio_term()
+  call void @term_holmes()
+  %30 = load i8** @dict, align 8
+  %tobool19 = icmp ne i8* %30, null
+  br i1 %tobool19, label %if.then20, label %if.end21
+
+if.then20:                                        ; preds = %if.end18
+  call void @dict_term()
+  br label %if.end21
+
+if.end21:                                         ; preds = %if.then20, %if.end18
+  ret i32 0
+}
+
+declare i32 @audio_init(i32, i8**) #1
+
+declare i32 @init_synth(i32, i8**) #1
+
+declare i32 @init_holmes(i32, i8**) #1
+
+declare i32 @dict_init(i32, i8**) #1
+
+declare i32 @file_init(i32, i8**) #1
+
+declare i32 @getargs(i8*, i32, i8**, ...) #1
+
+declare void @audio_term() #1
+
+declare void @term_holmes() #1
+
+declare void @dict_term() #1
+
+declare i8* @dict_find(i8*, i32) #1
+
+declare i32 @NRL(i8*, i32, %struct.darray_t*) #1
+
+declare i8* @Darray_find(%struct.darray_t*, i32) #1
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { inlinehint nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }

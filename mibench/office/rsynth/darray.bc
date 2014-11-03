@@ -1,0 +1,418 @@
+; ModuleID = 'darray.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+%struct.darray_t = type { i8*, i32, i32, i16, i16 }
+
+@.str = private unnamed_addr constant [63 x i8] c"$Id: darray.c,v 1.13 1994/11/08 13:30:50 a904209 Exp a904209 $\00", align 1
+@darray_id = global i8* getelementptr inbounds ([63 x i8]* @.str, i32 0, i32 0), align 8
+
+; Function Attrs: nounwind ssp uwtable
+define void @darray_free(%struct.darray_t* %a) #0 {
+entry:
+  %a.addr = alloca %struct.darray_t*, align 8
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  %0 = load %struct.darray_t** %a.addr, align 8
+  %data = getelementptr inbounds %struct.darray_t* %0, i32 0, i32 0
+  %1 = load i8** %data, align 8
+  %tobool = icmp ne i8* %1, null
+  br i1 %tobool, label %if.then, label %if.end
+
+if.then:                                          ; preds = %entry
+  %2 = load %struct.darray_t** %a.addr, align 8
+  %data1 = getelementptr inbounds %struct.darray_t* %2, i32 0, i32 0
+  %3 = load i8** %data1, align 8
+  call void @free(i8* %3)
+  %4 = load %struct.darray_t** %a.addr, align 8
+  %data2 = getelementptr inbounds %struct.darray_t* %4, i32 0, i32 0
+  store i8* null, i8** %data2, align 8
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %entry
+  %5 = load %struct.darray_t** %a.addr, align 8
+  %alloc = getelementptr inbounds %struct.darray_t* %5, i32 0, i32 2
+  store i32 0, i32* %alloc, align 4
+  %6 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %6, i32 0, i32 1
+  store i32 0, i32* %items, align 4
+  ret void
+}
+
+declare void @free(i8*) #1
+
+; Function Attrs: nounwind ssp uwtable
+define i8* @Darray_find(%struct.darray_t* %a, i32 %n) #0 {
+entry:
+  %retval = alloca i8*, align 8
+  %a.addr = alloca %struct.darray_t*, align 8
+  %n.addr = alloca i32, align 4
+  %osize = alloca i32, align 4
+  %nsize = alloca i32, align 4
+  %add = alloca i32, align 4
+  %ndata = alloca i8*, align 8
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  %0 = load i32* %n.addr, align 4
+  %1 = load %struct.darray_t** %a.addr, align 8
+  %alloc = getelementptr inbounds %struct.darray_t* %1, i32 0, i32 2
+  %2 = load i32* %alloc, align 4
+  %cmp = icmp uge i32 %0, %2
+  br i1 %cmp, label %if.then, label %lor.lhs.false
+
+lor.lhs.false:                                    ; preds = %entry
+  %3 = load i32* %n.addr, align 4
+  %4 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %4, i32 0, i32 1
+  %5 = load i32* %items, align 4
+  %cmp1 = icmp uge i32 %3, %5
+  br i1 %cmp1, label %if.then, label %if.end53
+
+if.then:                                          ; preds = %lor.lhs.false, %entry
+  %6 = load %struct.darray_t** %a.addr, align 8
+  %items2 = getelementptr inbounds %struct.darray_t* %6, i32 0, i32 1
+  %7 = load i32* %items2, align 4
+  %8 = load %struct.darray_t** %a.addr, align 8
+  %esize = getelementptr inbounds %struct.darray_t* %8, i32 0, i32 3
+  %9 = load i16* %esize, align 2
+  %conv = zext i16 %9 to i32
+  %mul = mul i32 %7, %conv
+  store i32 %mul, i32* %osize, align 4
+  %10 = load %struct.darray_t** %a.addr, align 8
+  %esize3 = getelementptr inbounds %struct.darray_t* %10, i32 0, i32 3
+  %11 = load i16* %esize3, align 2
+  %tobool = icmp ne i16 %11, 0
+  br i1 %tobool, label %if.end, label %if.then4
+
+if.then4:                                         ; preds = %if.then
+  call void @abort() #6
+  unreachable
+
+if.end:                                           ; preds = %if.then
+  %12 = load i32* %n.addr, align 4
+  %13 = load %struct.darray_t** %a.addr, align 8
+  %alloc5 = getelementptr inbounds %struct.darray_t* %13, i32 0, i32 2
+  %14 = load i32* %alloc5, align 4
+  %cmp6 = icmp uge i32 %12, %14
+  br i1 %cmp6, label %if.then8, label %if.else34
+
+if.then8:                                         ; preds = %if.end
+  %15 = load %struct.darray_t** %a.addr, align 8
+  %get = getelementptr inbounds %struct.darray_t* %15, i32 0, i32 4
+  %16 = load i16* %get, align 2
+  %conv9 = zext i16 %16 to i32
+  %tobool10 = icmp ne i32 %conv9, 0
+  br i1 %tobool10, label %cond.true, label %cond.false
+
+cond.true:                                        ; preds = %if.then8
+  %17 = load %struct.darray_t** %a.addr, align 8
+  %get11 = getelementptr inbounds %struct.darray_t* %17, i32 0, i32 4
+  %18 = load i16* %get11, align 2
+  %conv12 = zext i16 %18 to i32
+  br label %cond.end
+
+cond.false:                                       ; preds = %if.then8
+  br label %cond.end
+
+cond.end:                                         ; preds = %cond.false, %cond.true
+  %cond = phi i32 [ %conv12, %cond.true ], [ 1, %cond.false ]
+  store i32 %cond, i32* %add, align 4
+  %19 = load i32* %n.addr, align 4
+  %20 = load i32* %add, align 4
+  %add13 = add i32 %19, %20
+  %21 = load %struct.darray_t** %a.addr, align 8
+  %esize14 = getelementptr inbounds %struct.darray_t* %21, i32 0, i32 3
+  %22 = load i16* %esize14, align 2
+  %conv15 = zext i16 %22 to i32
+  %mul16 = mul i32 %add13, %conv15
+  store i32 %mul16, i32* %nsize, align 4
+  %conv17 = zext i32 %mul16 to i64
+  %call = call i8* @malloc(i64 %conv17)
+  store i8* %call, i8** %ndata, align 8
+  %23 = load i8** %ndata, align 8
+  %tobool18 = icmp ne i8* %23, null
+  br i1 %tobool18, label %if.then19, label %if.else
+
+if.then19:                                        ; preds = %cond.end
+  %24 = load i32* %osize, align 4
+  %tobool20 = icmp ne i32 %24, 0
+  br i1 %tobool20, label %if.then21, label %if.end24
+
+if.then21:                                        ; preds = %if.then19
+  %25 = load i8** %ndata, align 8
+  %26 = load %struct.darray_t** %a.addr, align 8
+  %data = getelementptr inbounds %struct.darray_t* %26, i32 0, i32 0
+  %27 = load i8** %data, align 8
+  %28 = load i32* %osize, align 4
+  %conv22 = zext i32 %28 to i64
+  %29 = load i8** %ndata, align 8
+  %30 = call i64 @llvm.objectsize.i64(i8* %29, i1 false)
+  %call23 = call i8* @__memcpy_chk(i8* %25, i8* %27, i64 %conv22, i64 %30) #7
+  br label %if.end24
+
+if.end24:                                         ; preds = %if.then21, %if.then19
+  %31 = load %struct.darray_t** %a.addr, align 8
+  %data25 = getelementptr inbounds %struct.darray_t* %31, i32 0, i32 0
+  %32 = load i8** %data25, align 8
+  %tobool26 = icmp ne i8* %32, null
+  br i1 %tobool26, label %if.then27, label %if.end29
+
+if.then27:                                        ; preds = %if.end24
+  %33 = load %struct.darray_t** %a.addr, align 8
+  %data28 = getelementptr inbounds %struct.darray_t* %33, i32 0, i32 0
+  %34 = load i8** %data28, align 8
+  call void @free(i8* %34)
+  br label %if.end29
+
+if.end29:                                         ; preds = %if.then27, %if.end24
+  %35 = load i8** %ndata, align 8
+  %36 = load %struct.darray_t** %a.addr, align 8
+  %data30 = getelementptr inbounds %struct.darray_t* %36, i32 0, i32 0
+  store i8* %35, i8** %data30, align 8
+  %37 = load i32* %n.addr, align 4
+  %38 = load i32* %add, align 4
+  %add31 = add i32 %37, %38
+  %39 = load %struct.darray_t** %a.addr, align 8
+  %alloc32 = getelementptr inbounds %struct.darray_t* %39, i32 0, i32 2
+  store i32 %add31, i32* %alloc32, align 4
+  br label %if.end33
+
+if.else:                                          ; preds = %cond.end
+  store i8* null, i8** %retval
+  br label %return
+
+if.end33:                                         ; preds = %if.end29
+  br label %if.end39
+
+if.else34:                                        ; preds = %if.end
+  %40 = load i32* %n.addr, align 4
+  %add35 = add i32 %40, 1
+  %41 = load %struct.darray_t** %a.addr, align 8
+  %esize36 = getelementptr inbounds %struct.darray_t* %41, i32 0, i32 3
+  %42 = load i16* %esize36, align 2
+  %conv37 = zext i16 %42 to i32
+  %mul38 = mul i32 %add35, %conv37
+  store i32 %mul38, i32* %nsize, align 4
+  br label %if.end39
+
+if.end39:                                         ; preds = %if.else34, %if.end33
+  %43 = load i32* %n.addr, align 4
+  %44 = load %struct.darray_t** %a.addr, align 8
+  %items40 = getelementptr inbounds %struct.darray_t* %44, i32 0, i32 1
+  %45 = load i32* %items40, align 4
+  %cmp41 = icmp uge i32 %43, %45
+  br i1 %cmp41, label %if.then43, label %if.end52
+
+if.then43:                                        ; preds = %if.end39
+  %46 = load %struct.darray_t** %a.addr, align 8
+  %data44 = getelementptr inbounds %struct.darray_t* %46, i32 0, i32 0
+  %47 = load i8** %data44, align 8
+  %48 = load i32* %osize, align 4
+  %idx.ext = zext i32 %48 to i64
+  %add.ptr = getelementptr inbounds i8* %47, i64 %idx.ext
+  %49 = load i32* %nsize, align 4
+  %50 = load i32* %osize, align 4
+  %sub = sub i32 %49, %50
+  %conv45 = zext i32 %sub to i64
+  %51 = load %struct.darray_t** %a.addr, align 8
+  %data46 = getelementptr inbounds %struct.darray_t* %51, i32 0, i32 0
+  %52 = load i8** %data46, align 8
+  %53 = load i32* %osize, align 4
+  %idx.ext47 = zext i32 %53 to i64
+  %add.ptr48 = getelementptr inbounds i8* %52, i64 %idx.ext47
+  %54 = call i64 @llvm.objectsize.i64(i8* %add.ptr48, i1 false)
+  %call49 = call i8* @__memset_chk(i8* %add.ptr, i32 0, i64 %conv45, i64 %54) #7
+  %55 = load i32* %n.addr, align 4
+  %add50 = add i32 %55, 1
+  %56 = load %struct.darray_t** %a.addr, align 8
+  %items51 = getelementptr inbounds %struct.darray_t* %56, i32 0, i32 1
+  store i32 %add50, i32* %items51, align 4
+  br label %if.end52
+
+if.end52:                                         ; preds = %if.then43, %if.end39
+  br label %if.end53
+
+if.end53:                                         ; preds = %if.end52, %lor.lhs.false
+  %57 = load %struct.darray_t** %a.addr, align 8
+  %data54 = getelementptr inbounds %struct.darray_t* %57, i32 0, i32 0
+  %58 = load i8** %data54, align 8
+  %59 = load i32* %n.addr, align 4
+  %60 = load %struct.darray_t** %a.addr, align 8
+  %esize55 = getelementptr inbounds %struct.darray_t* %60, i32 0, i32 3
+  %61 = load i16* %esize55, align 2
+  %conv56 = zext i16 %61 to i32
+  %mul57 = mul i32 %59, %conv56
+  %idx.ext58 = zext i32 %mul57 to i64
+  %add.ptr59 = getelementptr inbounds i8* %58, i64 %idx.ext58
+  store i8* %add.ptr59, i8** %retval
+  br label %return
+
+return:                                           ; preds = %if.end53, %if.else
+  %62 = load i8** %retval
+  ret i8* %62
+}
+
+; Function Attrs: noreturn
+declare void @abort() #2
+
+declare i8* @malloc(i64) #1
+
+; Function Attrs: nounwind
+declare i8* @__memcpy_chk(i8*, i8*, i64, i64) #3
+
+; Function Attrs: nounwind readnone
+declare i64 @llvm.objectsize.i64(i8*, i1) #4
+
+; Function Attrs: nounwind
+declare i8* @__memset_chk(i8*, i32, i64, i64) #3
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @darray_delete(%struct.darray_t* %a, i32 %n) #0 {
+entry:
+  %retval = alloca i32, align 4
+  %a.addr = alloca %struct.darray_t*, align 8
+  %n.addr = alloca i32, align 4
+  %p = alloca i8*, align 8
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  %0 = load %struct.darray_t** %a.addr, align 8
+  %1 = load i32* %n.addr, align 4
+  %call = call i8* @darray_find(%struct.darray_t* %0, i32 %1)
+  store i8* %call, i8** %p, align 8
+  %2 = load i8** %p, align 8
+  %tobool = icmp ne i8* %2, null
+  br i1 %tobool, label %if.then, label %if.else15
+
+if.then:                                          ; preds = %entry
+  %3 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %3, i32 0, i32 1
+  %4 = load i32* %items, align 4
+  %tobool1 = icmp ne i32 %4, 0
+  br i1 %tobool1, label %if.then2, label %if.else
+
+if.then2:                                         ; preds = %if.then
+  %5 = load %struct.darray_t** %a.addr, align 8
+  %items3 = getelementptr inbounds %struct.darray_t* %5, i32 0, i32 1
+  %6 = load i32* %items3, align 4
+  %dec = add i32 %6, -1
+  store i32 %dec, i32* %items3, align 4
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.body, %if.then2
+  %7 = load i32* %n.addr, align 4
+  %inc = add i32 %7, 1
+  store i32 %inc, i32* %n.addr, align 4
+  %8 = load %struct.darray_t** %a.addr, align 8
+  %items4 = getelementptr inbounds %struct.darray_t* %8, i32 0, i32 1
+  %9 = load i32* %items4, align 4
+  %cmp = icmp ult i32 %7, %9
+  br i1 %cmp, label %while.body, label %while.end
+
+while.body:                                       ; preds = %while.cond
+  %10 = load i8** %p, align 8
+  %11 = load i8** %p, align 8
+  %12 = load %struct.darray_t** %a.addr, align 8
+  %esize = getelementptr inbounds %struct.darray_t* %12, i32 0, i32 3
+  %13 = load i16* %esize, align 2
+  %conv = zext i16 %13 to i32
+  %idx.ext = sext i32 %conv to i64
+  %add.ptr = getelementptr inbounds i8* %11, i64 %idx.ext
+  %14 = load %struct.darray_t** %a.addr, align 8
+  %esize5 = getelementptr inbounds %struct.darray_t* %14, i32 0, i32 3
+  %15 = load i16* %esize5, align 2
+  %conv6 = zext i16 %15 to i64
+  %16 = load i8** %p, align 8
+  %17 = call i64 @llvm.objectsize.i64(i8* %16, i1 false)
+  %call7 = call i8* @__memcpy_chk(i8* %10, i8* %add.ptr, i64 %conv6, i64 %17) #7
+  %18 = load %struct.darray_t** %a.addr, align 8
+  %esize8 = getelementptr inbounds %struct.darray_t* %18, i32 0, i32 3
+  %19 = load i16* %esize8, align 2
+  %conv9 = zext i16 %19 to i32
+  %20 = load i8** %p, align 8
+  %idx.ext10 = sext i32 %conv9 to i64
+  %add.ptr11 = getelementptr inbounds i8* %20, i64 %idx.ext10
+  store i8* %add.ptr11, i8** %p, align 8
+  br label %while.cond
+
+while.end:                                        ; preds = %while.cond
+  %21 = load i8** %p, align 8
+  %22 = load %struct.darray_t** %a.addr, align 8
+  %esize12 = getelementptr inbounds %struct.darray_t* %22, i32 0, i32 3
+  %23 = load i16* %esize12, align 2
+  %conv13 = zext i16 %23 to i64
+  %24 = load i8** %p, align 8
+  %25 = call i64 @llvm.objectsize.i64(i8* %24, i1 false)
+  %call14 = call i8* @__memset_chk(i8* %21, i32 0, i64 %conv13, i64 %25) #7
+  store i32 1, i32* %retval
+  br label %return
+
+if.else:                                          ; preds = %if.then
+  call void @abort() #6
+  unreachable
+
+if.else15:                                        ; preds = %entry
+  store i32 0, i32* %retval
+  br label %return
+
+return:                                           ; preds = %if.else15, %while.end
+  %26 = load i32* %retval
+  ret i32 %26
+}
+
+; Function Attrs: inlinehint nounwind ssp uwtable
+define internal i8* @darray_find(%struct.darray_t* %a, i32 %n) #5 {
+entry:
+  %retval = alloca i8*, align 8
+  %a.addr = alloca %struct.darray_t*, align 8
+  %n.addr = alloca i32, align 4
+  store %struct.darray_t* %a, %struct.darray_t** %a.addr, align 8
+  store i32 %n, i32* %n.addr, align 4
+  %0 = load i32* %n.addr, align 4
+  %1 = load %struct.darray_t** %a.addr, align 8
+  %alloc = getelementptr inbounds %struct.darray_t* %1, i32 0, i32 2
+  %2 = load i32* %alloc, align 4
+  %cmp = icmp ult i32 %0, %2
+  br i1 %cmp, label %land.lhs.true, label %if.end
+
+land.lhs.true:                                    ; preds = %entry
+  %3 = load i32* %n.addr, align 4
+  %4 = load %struct.darray_t** %a.addr, align 8
+  %items = getelementptr inbounds %struct.darray_t* %4, i32 0, i32 1
+  %5 = load i32* %items, align 4
+  %cmp1 = icmp ult i32 %3, %5
+  br i1 %cmp1, label %if.then, label %if.end
+
+if.then:                                          ; preds = %land.lhs.true
+  %6 = load %struct.darray_t** %a.addr, align 8
+  %data = getelementptr inbounds %struct.darray_t* %6, i32 0, i32 0
+  %7 = load i8** %data, align 8
+  %8 = load i32* %n.addr, align 4
+  %9 = load %struct.darray_t** %a.addr, align 8
+  %esize = getelementptr inbounds %struct.darray_t* %9, i32 0, i32 3
+  %10 = load i16* %esize, align 2
+  %conv = zext i16 %10 to i32
+  %mul = mul i32 %8, %conv
+  %idx.ext = zext i32 %mul to i64
+  %add.ptr = getelementptr inbounds i8* %7, i64 %idx.ext
+  store i8* %add.ptr, i8** %retval
+  br label %return
+
+if.end:                                           ; preds = %land.lhs.true, %entry
+  %11 = load %struct.darray_t** %a.addr, align 8
+  %12 = load i32* %n.addr, align 4
+  %call = call i8* @Darray_find(%struct.darray_t* %11, i32 %12)
+  store i8* %call, i8** %retval
+  br label %return
+
+return:                                           ; preds = %if.end, %if.then
+  %13 = load i8** %retval
+  ret i8* %13
+}
+
+attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { noreturn "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { nounwind "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind readnone }
+attributes #5 = { inlinehint nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #6 = { noreturn }
+attributes #7 = { nounwind }

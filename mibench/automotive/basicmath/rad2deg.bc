@@ -1,0 +1,42 @@
+; ModuleID = 'rad2deg.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-apple-macosx10.9.0"
+
+; Function Attrs: noinline nounwind ssp uwtable
+define double @rad2deg(double %rad) #0 {
+entry:
+  %rad.addr = alloca double, align 8
+  %result = alloca double, align 8
+  store double %rad, double* %rad.addr, align 8
+  %0 = load double* %rad.addr, align 8
+  %mul = fmul double 1.800000e+02, %0
+  %call = call double @atan(double 1.000000e+00) #2
+  %mul1 = fmul double 4.000000e+00, %call
+  %div = fdiv double %mul, %mul1
+  store double %div, double* %result, align 8
+  %1 = load double* %result, align 8
+  ret double %1
+}
+
+; Function Attrs: nounwind readnone
+declare double @atan(double) #1
+
+; Function Attrs: noinline nounwind ssp uwtable
+define double @deg2rad(double %deg) #0 {
+entry:
+  %deg.addr = alloca double, align 8
+  %result = alloca double, align 8
+  store double %deg, double* %deg.addr, align 8
+  %call = call double @atan(double 1.000000e+00) #2
+  %mul = fmul double 4.000000e+00, %call
+  %0 = load double* %deg.addr, align 8
+  %mul1 = fmul double %mul, %0
+  %div = fdiv double %mul1, 1.800000e+02
+  store double %div, double* %result, align 8
+  %1 = load double* %result, align 8
+  ret double %1
+}
+
+attributes #0 = { noinline nounwind ssp uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readnone "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readnone }
